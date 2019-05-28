@@ -7,11 +7,11 @@ class Test_cmdarguments(unittest.TestCase):
 
     def test_Parameters_PointCloudPath(self):
         sys.argv.append("-p")
-        sys.argv.append("../example_data")
+        sys.argv.append("example_data")
         para = cmdargs.Parameters()
 
         self.assertEqual(para.getPointCloudPath(),
-                         "../example_data")
+                         "example_data")
     """
     def test_Parameters_PointCloudNotAPath(self):
         sys.argv.append("-p")
@@ -21,18 +21,18 @@ class Test_cmdarguments(unittest.TestCase):
     """
     def test_Parameters_CadasterPath(self):
         sys.argv.append("-c")
-        sys.argv.append("../example_data")
+        sys.argv.append("example_data")
         para = cmdargs.Parameters()
 
-        self.assertEqual("../example_data",
+        self.assertEqual("example_data",
                          para.getCadasterPath())
 
     def test_Parameters_Output(self):
         sys.argv.append("-o")
-        sys.argv.append("../")
+        sys.argv.append("example_data")
         para = cmdargs.Parameters()
 
-        self.assertEqual("../",
+        self.assertEqual("example_data",
                          para.getOutputPath())
 
     def test_Parameters_XOffset(self):

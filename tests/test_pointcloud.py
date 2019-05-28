@@ -17,10 +17,10 @@ class Test_PointCloudReader(unittest.TestCase):
             pointcloud.PointCloudFileIO("No File")
 
     def test_writeFileToPath_writefile(self):
-        pointCloud = pointcloud.PointCloudFileIO("../example_data/pointcloud_examples/47078_575411_0011.laz")
-        pointCloud.writeFileToPath("../example_data/pointcloud_examples/test.las")
-        self.assertTrue(os.path.isfile("../example_data/pointcloud_examples/test.las"))
-        os.remove("../example_data/pointcloud_examples/test.las")
+        pointCloud = pointcloud.PointCloudFileIO("example_data/pointcloud_examples/47078_575411_0011.laz")
+        pointCloud.writeFileToPath("example_data/pointcloud_examples/test.las")
+        self.assertTrue(os.path.isfile("example_data/pointcloud_examples/test.las"))
+        os.remove("example_data/pointcloud_examples/test.las")
 
     def tearDown(self) -> None:
         pass
