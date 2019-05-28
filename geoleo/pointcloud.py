@@ -1,7 +1,6 @@
-import laspy.file 
+from laspy.file import File
 import numpy as np
-import File
-import util
+from geoleo import util
 
 """
 Class PointCloudFileIO encapsulates read/write access to .laz/.las files
