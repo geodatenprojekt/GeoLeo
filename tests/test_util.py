@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from backend import util
+from geoleo import util
 class Test_cmdarguments(unittest.TestCase):
     def setUp(self):
         pass

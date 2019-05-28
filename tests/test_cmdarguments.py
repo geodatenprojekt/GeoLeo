@@ -1,39 +1,38 @@
 import unittest
 import sys
-import argparse
-from cmdarguments import cmdargs
+from geoleo import cmdargs
 class Test_cmdarguments(unittest.TestCase):
     def setUp(self):
         pass
 
     def test_Parameters_PointCloudPath(self):
         sys.argv.append("-p")
-        sys.argv.append("../backend/example_data")
+        sys.argv.append("example_data")
         para = cmdargs.Parameters()
 
         self.assertEqual(para.getPointCloudPath(),
-                         "../backend/example_data")
-"""
+                         "example_data")
+    """
     def test_Parameters_PointCloudNotAPath(self):
         sys.argv.append("-p")
         sys.argv.append("NoPath")
         with self.assertRaises(argparse.ArgumentTypeError):
             para = cmdargs.Parameters()
-"""
+    """
     def test_Parameters_CadasterPath(self):
         sys.argv.append("-c")
-        sys.argv.append("../backend/CadasterReader/ExampleData")
+        sys.argv.append("example_data")
         para = cmdargs.Parameters()
 
-        self.assertEqual("../backend/CadasterReader/ExampleData",
+        self.assertEqual("example_data",
                          para.getCadasterPath())
 
     def test_Parameters_Output(self):
         sys.argv.append("-o")
-        sys.argv.append("../backend")
+        sys.argv.append("example_data")
         para = cmdargs.Parameters()
 
-        self.assertEqual("../backend",
+        self.assertEqual("example_data",
                          para.getOutputPath())
 
     def test_Parameters_XOffset(self):
