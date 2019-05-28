@@ -1,16 +1,16 @@
 import xml.etree.ElementTree as ET
-import Cadaster
+from geoleo import cadaster
 
 def getBuilding(points):
     """Get a Building object from a string array of coordinate points
 
     Args:
         points: string array of coordinate points
-    
+
     Returns:
-        A Building object with all coordinates    
+        A Building object with all coordinates
     """
-    building = Cadaster.Building()
+    building = cadaster.Building()
     building.coordinates = list()
 
     for counter in range(0, len(points)):
@@ -22,7 +22,7 @@ def getBuilding(points):
         elif coord == 0:
             z = float(points[counter])
 
-            coord = Cadaster.Coordinate(x, y, z)
+            coord = cadaster.Coordinate(x, y, z)
             building.coordinates.append(coord)
 
     return building
@@ -45,10 +45,10 @@ def getBuildings(fileName):
 
     buildings = list()
 
-    for xml_member in root.iterfind( core_nameSpace + "cityObjectMember"): 
-        elems = [ bldg_nameSpace + "Building",  bldg_nameSpace + "lod1Solid", gml_nameSpace + "Solid", gml_nameSpace + "exterior", gml_nameSpace + "CompositeSurface", gml_nameSpace + "surfaceMember", gml_nameSpace + 'Polygon', gml_nameSpace + 'exterior', gml_nameSpace + 'LinearRing', gml_nameSpace + 'posList' ] 
+    for xml_member in root.iterfind( core_nameSpace + "cityObjectMember"):
+        elems = [ bldg_nameSpace + "Building",  bldg_nameSpace + "lod1Solid", gml_nameSpace + "Solid", gml_nameSpace + "exterior", gml_nameSpace + "CompositeSurface", gml_nameSpace + "surfaceMember", gml_nameSpace + 'Polygon', gml_nameSpace + 'exterior', gml_nameSpace + 'LinearRing', gml_nameSpace + 'posList' ]
 
-        building = Cadaster.Building()
+        building = cadaster.Building()
         xml_elem = getXML_Element(elems, xml_member)
         if xml_elem is not -1:
             allPoints = xml_elem.text
