@@ -1,3 +1,5 @@
+from geoleo import cadaster_reader as cad_reader
+
 class Cadaster:
     """Cadaster Class 
 
@@ -12,6 +14,10 @@ class Cadaster:
     #def Move(self, x, y):
     #    self.offsetX = x
     #    self.offsetY = y
+    
+    def __init__(self, directory):
+        """Set buildings"""
+        self.buildings = cad_reader.getBuildings(directory)
 
 class Coordinate:
     """Cordinate Class
@@ -26,7 +32,7 @@ class Coordinate:
     z = 0
 
     def __init__(self, _x, _y, _z):
-        """Get and write the attributes of the class in the object"""
+        """Set x, y and z"""
         self.x = _x
         self.y = _y
         self.z = _z
@@ -38,3 +44,7 @@ class Building:
         coordinates: All Coordinate objects from the building
     """
     coordinates = list()
+
+    def __init__(self, _coordinates):
+        """Set coordinates"""
+        self.coordinates = _coordinates

@@ -1,7 +1,8 @@
 import xml.etree.ElementTree as ET
-import Cadaster
+from geoleo import cadaster
+from geoleo import file_helper
 
-def getBuilding(points):
+def getCoordinates(points):
     """Get a Building object from a string array of coordinate points
 
     Args:
@@ -10,8 +11,7 @@ def getBuilding(points):
     Returns:
         A Building object with all coordinates    
     """
-    building = Cadaster.Building()
-    building.coordinates = list()
+    coordinates = list()
 
     for counter in range(0, len(points)):
         coord = (counter + 1) % 3
@@ -22,39 +22,42 @@ def getBuilding(points):
         elif coord == 0:
             z = float(points[counter])
 
-            coord = Cadaster.Coordinate(x, y, z)
-            building.coordinates.append(coord)
+            coord = cadaster.Coordinate(x, y, z)
+            coordinates.append(coord)
 
-    return building
+    return coordinates
 
-def getBuildings(fileName):
+def getBuildings(directory):
     """Get all Buildings from a CityGML file
 
     Args:
-        fileName: Filename of the CityGML file
+        directory: directory name with all CityGML filey
 
     Returns:
         A List with all Building objects
     """
+
     core_nameSpace = "{http://www.opengis.net/citygml/1.0}"
     bldg_nameSpace = "{http://www.opengis.net/citygml/building/1.0}"
     gml_nameSpace = "{http://www.opengis.net/gml}"
 
-    tree = ET.parse(fileName)
-    root = tree.getroot()
-
+    fileNames = file_helper.get_all_paths_from_dir(directory)
+    
     buildings = list()
 
-    for xml_member in root.iterfind( core_nameSpace + "cityObjectMember"): 
-        elems = [ bldg_nameSpace + "Building",  bldg_nameSpace + "lod1Solid", gml_nameSpace + "Solid", gml_nameSpace + "exterior", gml_nameSpace + "CompositeSurface", gml_nameSpace + "surfaceMember", gml_nameSpace + 'Polygon', gml_nameSpace + 'exterior', gml_nameSpace + 'LinearRing', gml_nameSpace + 'posList' ] 
+    for fileName in fileNames:
+        tree = ET.parse(fileName)
+        root = tree.getroot()
 
-        building = Cadaster.Building()
-        xml_elem = getXML_Element(elems, xml_member)
-        if xml_elem is not -1:
-            allPoints = xml_elem.text
-            points = allPoints.split()
-            building = getBuilding(points)
-            buildings.append(building)
+        for xml_member in root.iterfind( core_nameSpace + "cityObjectMember"): 
+            elems = [ bldg_nameSpace + "Building",  bldg_nameSpace + "lod1Solid", gml_nameSpace + "Solid", gml_nameSpace + "exterior", gml_nameSpace + "CompositeSurface", gml_nameSpace + "surfaceMember", gml_nameSpace + 'Polygon', gml_nameSpace + 'exterior', gml_nameSpace + 'LinearRing', gml_nameSpace + 'posList' ] 
+
+            xml_elem = getXML_Element(elems, xml_member)
+            if xml_elem is not -1:
+                allPoints = xml_elem.text
+                points = allPoints.split()
+                building = cadaster.Building(getCoordinates(points))
+                buildings.append(building)
 
     return buildings
 
@@ -66,6 +69,7 @@ def getXML_Element(elems, xml_elem):
        xml_elem: Current XML element
 
     """
+
     if xml_elem is None:
         return -1
 
