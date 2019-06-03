@@ -1,10 +1,10 @@
 class Cadaster:
-    """Cadaster Class 
+    """Cadaster Class
 
     Attributes:
         buildings: All Building objects from the cadaster
     """
-    buildings = list()  
+    buildings = list()
 
     #def Resize(self, scale):
     #    self.scale = scale
@@ -30,6 +30,9 @@ class Coordinate:
         self.x = _x
         self.y = _y
         self.z = _z
+
+    def __eq__(self, other):
+        return self.x == other.x and self.y == other.y and self.z == other.z
 
 class Building:
     """Building Class
