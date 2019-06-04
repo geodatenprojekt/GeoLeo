@@ -1,13 +1,13 @@
 import unittest
 
-# import backend test modules
+#import backend test modules
 from tests import test_pointcloud
 from tests import test_cmdarguments
 from tests import test_util
 from tests import test_file_helper
 from tests import test_cadaster_reader
 
-#initialize the test suit
+#initialize the test suite
 loader = unittest.TestLoader()
 suite = unittest.TestSuite()
 

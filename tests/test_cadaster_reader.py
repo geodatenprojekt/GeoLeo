@@ -26,7 +26,9 @@ class test_cadaster_reader(unittest.TestCase):
         self.assertEqual(-3451.0, cadaster.get_coordinates(pointList)[0]._z)
 
     def test_cadaster_reader_get_coordinates_not_valid_point(self):
-        """Test the method get coordinates without the z value in a Point."""
+        """Test the method get coordinates without the z value in a Point. It should raise
+            a ValueError.
+        """
         x = "4"
         y = "5"
         pointList = []
@@ -36,7 +38,7 @@ class test_cadaster_reader(unittest.TestCase):
             cadaster.get_coordinates(pointList)
 
     def test_cadaster_reader_get_buildings_none_dir(self):
-        """Test the get buildings method withe non as building directory."""
+        """Test the get buildings method withe none as building directory."""
         self.assertEqual(None, cadaster.get_buildings(None))
 
 
