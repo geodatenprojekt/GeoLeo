@@ -1,5 +1,6 @@
 import unittest
 import numpy as np
+import os
 from geoleo import util
 class Test_util(unittest.TestCase):
     """Test the methods of util
@@ -7,6 +8,29 @@ class Test_util(unittest.TestCase):
     """
     def setUp(self):
         pass
+
+
+    def test_get_path_to_file_none_file(self):
+        """Test the method "get_path_to_file" in util withe none as file. It should return
+            none.
+        """
+        self.assertEqual(None, util.getPathToFile(None))
+
+    def test_get_path_relative_to_root_none_file(self):
+        """Test the method "get_path_relative_to_root" in util withe none as file. It should return
+                   none.
+        """
+        self.assertEqual(None, util.getPathRelativeToRoot(None))
+
+    def test_get_path_relative_to_root_none_file(self):
+        """Test the method "get_path_relative_to_root" in util withe none as file. It should return
+                   none.
+        """
+        string = util.getPathRelativeToRoot("test_suite.py")
+        #print(string)
+        self.assertTrue(True)
+
+
 
     def test_util_getPointsCloseToAnchor_sameYAches(self):
         """Test the method "get Points close to anchor" white Points on the same y-aches
