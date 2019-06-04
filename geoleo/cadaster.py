@@ -38,6 +38,9 @@ class Coordinate:
         self._y = y
         self._z = z
 
+    def __eq__(self, other):
+        return self.x == other.x and self.y == other.y and self.z == other.z
+
 class Building:
     """Building Class
 

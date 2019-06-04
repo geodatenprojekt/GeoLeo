@@ -22,10 +22,8 @@ XML_POS_LIST = GML_NAME_SPACE + 'posList'
 
 def get_coordinates(points):
     """Get a Building object from a string array of coordinate points
-
     Args:
         points: string array of coordinate points
-
     Returns:
         A Building object with all coordinates
     """
@@ -49,10 +47,8 @@ def get_coordinates(points):
 
 def get_buildings(directory):
     """Get all Buildings from a CityGML file
-
     Args:
         directory: directory name with all CityGML filey
-
     Returns:
         A List with all Building objects
     """
@@ -79,11 +75,9 @@ def get_buildings(directory):
 
 def get_xml_element(elems, xml_elem):
     """Get the XML Element of the CityGML including the points
-
     Args:
        elems: XML elements to go to the goal element
        xml_elem: Current XML element
-
     """
 
     if xml_elem is None:
