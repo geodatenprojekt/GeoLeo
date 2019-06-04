@@ -1,5 +1,6 @@
 """Functions for reading the CityGML files"""
 
+
 import xml.etree.ElementTree as ET
 from geoleo import cadaster
 from geoleo import file_helper
@@ -74,6 +75,7 @@ def get_buildings(directory):
                 building = cadaster.Building(get_coordinates(points))
 
                 buildings.append(building)
+
 
     return buildings
 
