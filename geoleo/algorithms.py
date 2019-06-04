@@ -6,6 +6,14 @@ from shapely.geometry import Point, Polygon
 import numpy as np
 import os
 
+def printProgressToConsole(current, max):
+    print("{:.2f}%".format((current / max) * 100))
+
+"""
+Shifts all buildings by a given offset
+@param buildings  A list of buildings to be shifted
+@param offset  The offset by which the buildings should be shifted
+"""
 def shiftCadasterCoordinates(buildings, offset):
     for building in buildings:
         for coordinate in building.coordinates:
@@ -13,13 +21,20 @@ def shiftCadasterCoordinates(buildings, offset):
             coordinate.y += offset[1]
 
 """
-Return:
-buildingsFound = {building1: ((True, True, True, True, ...), (pathToFile1, pathToFile2, ...)), building2: [...]}
+Filters all of the PointClouds and searches for the buildings inside them
+@param buildings  A list of buildings used for the search
+@param filePathList  A list of paths to .las/.laz files
+@param lasBoundsDict  A dictionary which holds the bounds for a given .las File
+@param maxBounds  Optional: The maximum bounds used to filter the buildings beforehands
+@return A dictionary of the form {building1: ((True, True, True, True, ...), (pathToFile1, pathToFile2, ...)), building2: [...]}
 """
-def getLasFilesForBuildings(buildings, filePathList, lasBoundsDict, maxBounds=None):
+def getLasFilesForBuildings(buildings, filePathList, lasBoundsDict, maxBounds=None, callback=printProgressToConsole):
     buildingsFound = {}
 
-    print("File selection started:\n0.00%")
+    count = len(filePathList)
+    currentFileIndex = 0
+
+    callback(currentFileIndex, count)
 
     for building in buildings:
         if(maxBounds != None and building.coordinates[0].x <= maxBounds[0] or building.coordinates[0].x >= maxBounds[2] or building.coordinates[0].y <= maxBounds[1] or building.coordinates[0].y >= maxBounds[3]):
@@ -33,8 +48,6 @@ def getLasFilesForBuildings(buildings, filePathList, lasBoundsDict, maxBounds=No
 
         buildingsFound[building] = (points, paths)
 
-    count = len(filePathList)
-    currentFileIndex = 0
     for lasFile in filePathList:
         if(not lasFile.endswith(".las") and not lasFile.endswith(".laz")):
             continue
@@ -69,14 +82,17 @@ def getLasFilesForBuildings(buildings, filePathList, lasBoundsDict, maxBounds=No
                 i += 1
 
         currentFileIndex += 1
-        print("{:.2f}%".format((currentFileIndex / count) * 100))
+        callback(currentFileIndex, count)
 
     return buildingsFound
 
 """
-return = [globalLowestX, globalLowestY, globalHighestX, globalHighestY, {lasFile: (lowestCoords, highestCoords), lasFile2: (...), ...}]
+Processes the list of .las files before any other algorithm is performed. Grabs globally lowest/highest coordinates and the locally lowest/highest coordinates for each building
+Tracks
+@param filePathList  A list of .las/.laz files to be preprocessed
+@return An array in the form of [globalLowestX, globalLowestY, globalHighestX, globalHighestY, {lasFile1: (lowestCoords, highestCoords), lasFile2: (...), ...}]
 """
-def preProcessLasFiles(filePathList):
+def preProcessLasFiles(filePathList, callback=printProgressToConsole):
     firstFile = filePathList[0]
     firstFileReader = PointCloudFileIO(util.getPathToFile(firstFile))
 
@@ -92,7 +108,7 @@ def preProcessLasFiles(filePathList):
 
     count = len(filePathList)
     i = 0
-    print("Pre processing started:\n0.00%")
+    callback(i, count)
     for lasFile in filePathList:
         lasFileReader = PointCloudFileIO(util.getPathToFile(lasFile))
 
@@ -111,6 +127,6 @@ def preProcessLasFiles(filePathList):
 
         coordsForPaths[lasFile] = (lowestCoords, highestCoords)
         i += 1
-        print("{:.2f}%".format((i / count) * 100))
+        callback(i, count)
 
     return [globalLowestX, globalLowestY, globalHighestX, globalHighestY, coordsForPaths]

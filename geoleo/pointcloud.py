@@ -18,6 +18,7 @@ class PointCloudFileIO:
     def __init__(self, path, read=True):
         self.path = path
         self.file = None
+        self.points = None
 
         if(read):
             self.readFile()
@@ -47,13 +48,18 @@ class PointCloudFileIO:
     @param path  The path to the new file
     @param keepPoints  An array of booleans to determine which points are saved. Needs to have the same length as the points array
     """
-    def writeFileToPath(self, path, keepPoints=None):
+    def writeFileToPath(self, path, points=None, keepPoints=None):
         if(self.file != None):
+            try:
+                len(points)
+            except TypeError:
+                points = self.file.points
+
             outFile = File(path, mode='w', header=self.file.header)
             if(keepPoints == None):
-                outFile.points = self.file.points
+                outFile.points = points
             else:
-                outFile.points = self.file.points[keepPoints]
+                outFile.points = points[keepPoints]
             outFile.close()
 
 
@@ -90,6 +96,18 @@ class PointCloudFileIO:
 
     def getFile(self):
         return self.file
+
+    """
+    Needed doc
+    """
+    def mergePointClouds(self, listPCReaders, newPath):
+        pointsOwn = self.file.points
+        pointsCombined = np.append(pointsOwn, listPCReaders[0].file.points)
+        for i in range(1, len(listPCReaders)):
+            pointsCombined = np.append(pointsCombined, listPCReaders[i].file.points)
+
+        self.writeFileToPath(newPath, points=pointsCombined)
+        self.readFile()
 
 if __name__ == "__main__":
     pcReader = PointCloudFileIO(util.getPathToFile("../backend/example_data/47078_575419_0011.laz"))
