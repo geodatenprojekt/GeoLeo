@@ -22,7 +22,7 @@ print("Global highest: ({}, {})".format(preProcessed[2], preProcessed[3]))
 
 
 
-ret = algorithms.getLasFilesForBuildings(cad.buildings, filesList, maxBounds=(preProcessed[0], preProcessed[1], preProcessed[2], preProcessed[3]))
+ret = algorithms.getLasFilesForBuildings(cad.buildings, filesList, preProcessed[4], maxBounds=(preProcessed[0], preProcessed[1], preProcessed[2], preProcessed[3]))
 i = 1
 buildingsCountInside = 0
 uniquePaths = []
@@ -34,6 +34,7 @@ for building, buildingInfo in ret.items():
         continue
     else:
         buildingsCountInside += 1
+
     for j in range(len(building.coordinates)):
         print("\tPoint ({:.3f}, {:.3f}) is {}".format(building.coordinates[j].x, building.coordinates[j].y, "inside" if buildingInfo[0][j] == True else "not inside"))
     for path in buildingInfo[1]:
