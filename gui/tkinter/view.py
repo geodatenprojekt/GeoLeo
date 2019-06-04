@@ -1,5 +1,7 @@
 import random
 from geoleo import pointcloud
+from geoleo import cadaster
+import geoleo.cadaster_reader as CadReader
 from geoleo import util
 
 from OpenGL.GL import *
@@ -60,25 +62,15 @@ def draw_rect(x, y, width, height):
     glEnd()
 
 
+def draw_line(x1, y1, x2, y2):
+    glBegin(GL_LINE)
+    glVertex2d(x1, y1)
+    glVertex2d(x2, y2)
+    glEnd()
+
 def draw_point(x, y, z):
-
-    #glVertex3f(x, y, z)
-    #glVertex3i(x, y, z)
-    #glColor3d(255, 0, 255)
-
-    #glColor3d(((cx >> 0) & 0xff), ((cy >> 0) & 0xff), ((cz >> 0) & 0xff))
-
-    # 65536
-    #24000
-
-    #print(cx / 65536)
-
-    #glColor3d(1, 0, 0)
-    #print(cx / 65536, cy / 65536, cz / 65536);
-    #glColor3d(cx / 65536, cy / 65536, cz / 65536)
     glColor3d(0.5,0.5,0.5)
     glVertex3d(x, y, z)
-    #glVertex2i(x, height - y)
 
 
 def refresh2d(width, height):
@@ -102,24 +94,28 @@ def refresh2d(width, height):
     #glLoadIdentity()
 
 
+def cadaster():
+    cad = cadaster.Cadaster()
+    cad.buildings = CadReader.getBuildings("/example_data/cadaster_examples/LoD1_468_5751_1_NW.gml")
+
+
+
+
 def draw():  # ondraw is called all the time
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)  # clear the screen
     glLoadIdentity()  # reset position
     refresh2d(width, height)  # set mode to 2d
 
-    #glColor3f(1, 1, 1)  # set color to blue
 
     draw_cordsystem()
 
-    glPointSize(1.0)
+    glPointSize(2)
     glScale(0.05, 0.05, 0.05)
     glBegin(GL_POINTS)
 
     pcReader = pointcloud.PointCloudFileIO(util.getPathRelativeToRoot("/example_data/pointcloud_examples/47078_575419_0011.laz"))
 
     points = pcReader.getPoints(absolute=False)
-    print(points[0])
-    print()
 
     max = np.amax(points, axis=0)
     min = np.amin(points, axis=0)
@@ -147,30 +143,11 @@ def draw():  # ondraw is called all the time
     print(np.amax(points, axis=0))
     print(np.amin(points, axis=0))
 
+    #for point in points:
+    #    draw_point(point[0], point[1], point[2])
 
+    draw_line(0,0,5,5)
 
-    #draw_point(100, 100, 0, 0, 1, 0)
-    #draw_point(-100, -100, 0, 1, 0, 0)
-
-    for point in points:
-        draw_point(point[0], point[1], point[2])
-
-    #max = 11000
-
-    #points = []
-    #for i in range(0, 10):
-    #    points.append([random.randint(-max, max), random.randint(-max, max), random.randint(-max, max), random.randint(0, 255) / 255, random.randint(0, 255) / 255, random.randint(0, 255) / 255])
-
-    #calc = max / 100
-
-    #for x in points:
-     #   x[0] /= calc
-      #  x[1] /= calc
-       # x[2] /= calc
-
-
-    #for x in points:
-    #    draw_point(x[0], x[1], x[2], x[3], x[4], x[5])
 
     glEnd()
     glFlush()
