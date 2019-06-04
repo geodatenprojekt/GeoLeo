@@ -23,6 +23,10 @@ class Test_file_helper(unittest.TestCase):
         shutil.rmtree("./test")
         self.assertEqual(test_path_list, path_list)
 
+    def test_file_helper_get_all_paths_from_dir_NoPath(self):
+        with self.assertRaises(FileNotFoundError):
+            file_helper.get_all_paths_from_dir("test")
+
     def tearDown(self) -> None:
         pass
 
