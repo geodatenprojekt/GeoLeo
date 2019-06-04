@@ -1,11 +1,16 @@
 import unittest
 import numpy as np
 from geoleo import util
-class Test_cmdarguments(unittest.TestCase):
+class Test_util(unittest.TestCase):
+    """Test the methods of util
+        @author Valentin Hertel
+    """
     def setUp(self):
         pass
 
     def test_util_getPointsCloseToAnchor_sameYAches(self):
+        """Test the method "get Points close to anchor" white Points on the same y-aches
+            and in a distance of 3"""
         p1 = np.array([1, 3, 5]).reshape(3)
         p2 = np.array([1, 3, 6]).reshape(3)
         p3 = np.array([1, 3, 7]).reshape(3)
@@ -25,6 +30,8 @@ class Test_cmdarguments(unittest.TestCase):
             self.assertEqual(closeList[i],list[i])
 
     def test_util_getPointsCloseToAnchor_Find_balcony(self):
+        """Test the method "get points close to anchor" withe a point on the roof and
+            some points of a balcony and a gutter."""
         #Balconiy coord
         #right side
         b1 = np.array([5, 8, 3]).reshape(3)
