@@ -7,6 +7,7 @@ class TestAlgorithms (unittest.TestCase):
     """Test the algorithms of util
         @author Valentin Hertel
     """
+
     def test_algorithms_shift_cadaster_coordinates_first_and_last_coordinates(self):
         """Test the method "shift cadaster coordinates" withe the first coordinate
             of the first building and the last coordinate od the last building.
