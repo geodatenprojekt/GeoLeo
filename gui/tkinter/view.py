@@ -12,31 +12,6 @@ import numpy as np
 points = ((0, 0, 0), (1, 1, 1))
 width, height = 1300, 600  # window size
 
-edges = (
-    (0,1),
-    (0,3),
-    (0,4),
-    (2,1),
-    (2,3),
-    (2,7),
-    (6,3),
-    (6,4),
-    (6,7),
-    (5,1),
-    (5,4),
-    (5,7)
-    )
-vertices= (
-    (1, -1, -1),
-    (1, 1, -1),
-    (-1, 1, -1),
-    (-1, -1, -1),
-    (1, -1, 1),
-    (1, 1, 1),
-    (-1, -1, 1),
-    (-1, 1, 1)
-    )
-
 def draw_cordsystem():
     glBegin(GL_LINES)
     glColor3f(1, 0, 0)
@@ -64,12 +39,13 @@ def draw_rect(x, y, width, height):
 
 def draw_line(x1, y1, x2, y2):
     glBegin(GL_LINE)
-    glVertex2d(x1, y1)
-    glVertex2d(x2, y2)
+    glColor3f(0, 1, 0)
+    glVertex3fv((x1, y1, 0))
+    glVertex3fv((x2, y2, 0))
     glEnd()
 
-def draw_point(x, y, z):
-    glColor3d(0.5,0.5,0.5)
+def draw_point(x, y, z, cr, cg, cb):
+    glColor3d(cr,cg,cb)
     glVertex3d(x, y, z)
 
 
@@ -78,7 +54,7 @@ def refresh2d(width, height):
     #glMatrixMode(GL_MODELVIEW)
     #glLoadIdentity()
     #glOrtho(left,right,bottom,top,zNear,zFar):pass
-    #glOrtho(0.0, width, 0.0, height, 0, 100000)
+    #glOrtho(0.0, width, 0.0, height, 0, 1000)
 
     #gluPerspective(fovy, aspect, zNear, zFar)
 
@@ -89,8 +65,8 @@ def refresh2d(width, height):
 
     #gluLookAt(vehicleX, vehicleY + 20, vehicleZ, vehicleX, vehicleY, vehicleZ, 0.0, 0.0, 1.0); ---> this is what i need :)
 
-    gluPerspective(90.0, width / height , 0.1, 100)
-    gluLookAt(0,5,0, 0,0,0, 0, 0, 1)
+    gluPerspective(90.0, width / height , 0.1, 20000)
+    gluLookAt(0,1,0, 0,0,0, 0, 0, 1)
     #glLoadIdentity()
 
 
@@ -99,28 +75,39 @@ def cadaster():
     cad.buildings = CadReader.getBuildings("/example_data/cadaster_examples/LoD1_468_5751_1_NW.gml")
 
 
+def init():
+    pass
 
+def redraw():
+    pass
 
 def draw():  # ondraw is called all the time
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)  # clear the screen
     glLoadIdentity()  # reset position
     refresh2d(width, height)  # set mode to 2d
 
-
     draw_cordsystem()
 
     glPointSize(2)
-    glScale(0.05, 0.05, 0.05)
+    #glScale(0.05, 0.05, 0.05)
     glBegin(GL_POINTS)
 
     pcReader = pointcloud.PointCloudFileIO(util.getPathRelativeToRoot("/example_data/pointcloud_examples/47078_575419_0011.laz"))
 
-    points = pcReader.getPoints(absolute=False)
+    points = pcReader.getPointsWithColors(absolute=False)
 
     max = np.amax(points, axis=0)
     min = np.amin(points, axis=0)
 
-    hundred = 100
+    print(max[0])
+    print(max[1])
+    print(max[2])
+
+    print(min[0])
+    print(min[1])
+    print(min[2])
+
+    hundred = 1
     xmax = max[0] / hundred
     ymax = max[1] / hundred
     zmax = max[2] / hundred
@@ -133,21 +120,22 @@ def draw():  # ondraw is called all the time
     print(ymax)
     print(zmax)
 
-    for point in points:
+    '''for point in points:
         point[0] /= xmax
         point[1] /= ymax
         point[2] /= zmax
-
+    '''
     print(points[0])
 
     print(np.amax(points, axis=0))
     print(np.amin(points, axis=0))
 
-    #for point in points:
-    #    draw_point(point[0], point[1], point[2])
+    for point in points:
+        #print(point[0], point[1], point[2])
+        draw_point(point[0], point[1], point[2], point[3] / 65536, point[4] / 65536, point[5] / 65536)
 
-    draw_line(0,0,5,5)
-
+    #draw_line(0, 0, 0, 5)
+    #draw_line(5, 5, 0, 0)
 
     glEnd()
     glFlush()
