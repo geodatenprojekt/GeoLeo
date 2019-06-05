@@ -496,6 +496,7 @@ class Opengl(RawOpengl):
     def initgl(self):
         self.basic_lighting()
 
+
     def set_background(self, r, g, b):
         """Change the background colour of the widget."""
 
@@ -704,7 +705,7 @@ class Opengl(RawOpengl):
 
         self.activate()
         if not self.initialised:
-            self.basic_lighting()
+            #self.basic_lighting()
             self.initialised = 1
         self.tkRedraw()
 
