@@ -21,24 +21,26 @@ class AppOgl(Opengl):
         GL.glVertex3fv((0, 0, 1))
         GL.glEnd()
 
+    def init_pointcloud(self):
+        pcReader = pointcloud.PointCloudFileIO(
+            util.getPathRelativeToRoot("/example_data/pointcloud_examples/47078_575419_0011.laz"))
+        self.points = pcReader.getPointsWithColors(absolute=False)
+
     def draw_pointcloud(self):
-        pcReader = pointcloud.PointCloudFileIO(util.getPathRelativeToRoot("/example_data/pointcloud_examples/47078_575419_0011.laz"))
-        points = pcReader.getPointsWithColors(absolute=False)
-
         GL.glBegin(GL.GL_POINTS)
-
-        for point in points:
+        print(self.points.__len__())
+        for point in self.points:
             GL.glColor3d(point[3] / 65536, point[4] / 65536, point[5] / 65536)
             GL.glVertex3d(point[0], point[2], point[1])
         GL.glEnd()
 
 
     def initgl(self):
-        self.set_background(0, 0, 0)
+        self.set_background(173 / 255, 203 / 255, 255 / 255)
         self.set_eyepoint(20000)
         #GL.GL_MATRIX_MODE
         GL.glPointSize(2)
-        self.fovy = 90.0
+        self.fovy = 60.0
 
         self.near = 0.1
         self.far = 40000.0
@@ -46,9 +48,11 @@ class AppOgl(Opengl):
         self.yspin = 0
         self.xspin = 0
 
-        self.autospin = 1
+        self.autospin = 0.1
 
         self.do_AutoSpin()
+
+        self.init_pointcloud()
 
         #self.do_AutoSpin()
         pass
@@ -61,6 +65,7 @@ class AppOgl(Opengl):
 
         self.draw_cordsystem()
         self.draw_pointcloud()
+
 
         GL.glFlush()
 
