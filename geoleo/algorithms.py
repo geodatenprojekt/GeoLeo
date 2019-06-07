@@ -6,9 +6,6 @@ from shapely.geometry import Point, Polygon
 import numpy as np
 import os
 
-def printProgressToConsole(current, max):
-    print("{:.2f}%".format((current / max) * 100))
-
 """
 Shifts all buildings by a given offset
 @param buildings  A list of buildings to be shifted
@@ -28,7 +25,7 @@ Filters all of the PointClouds and searches for the buildings inside them
 @param maxBounds  Optional: The maximum bounds used to filter the buildings beforehands
 @return A dictionary of the form {building1: ((True, True, True, True, ...), (pathToFile1, pathToFile2, ...)), building2: [...]}
 """
-def getLasFilesForBuildings(buildings, filePathList, lasBoundsDict, maxBounds=None, callback=printProgressToConsole):
+def getLasFilesForBuildings(buildings, filePathList, lasBoundsDict, maxBounds=None, callback=util.printProgressToConsole):
     buildingsFound = {}
 
     count = len(filePathList)
@@ -92,7 +89,7 @@ Tracks
 @param filePathList  A list of .las/.laz files to be preprocessed
 @return An array in the form of [globalLowestX, globalLowestY, globalHighestX, globalHighestY, {lasFile1: (lowestCoords, highestCoords), lasFile2: (...), ...}]
 """
-def preProcessLasFiles(filePathList, callback=printProgressToConsole):
+def preProcessLasFiles(filePathList, callback=util.printProgressToConsole):
     firstFile = filePathList[0]
     firstFileReader = PointCloudFileIO(util.getPathToFile(firstFile))
 
