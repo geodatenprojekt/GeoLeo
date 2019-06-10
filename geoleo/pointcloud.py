@@ -84,12 +84,10 @@ class PointCloudFileIO:
                 return np.vstack((self.file.X, self.file.Y, self.file.Z, self.file.red, self.file.green, self.file.blue)).transpose()
 
     def getLowestCoords(self, absolute=True):
-        points = self.getPoints(absolute)
-        return np.amin(points, axis=0)
+        return self.file.header.min
 
     def getHighestCoords(self, absolute=True):
-        points = self.getPoints(absolute)
-        return np.amax(points, axis=0)
+        return self.file.header.max
 
     def getPath(self):
         return self.path

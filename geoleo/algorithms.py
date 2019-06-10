@@ -3,6 +3,7 @@ from geoleo import cadaster
 import geoleo.cadaster_reader as CadReader
 import geoleo.util as util
 from shapely.geometry import Point, Polygon
+from shapely import affinity
 import numpy as np
 import os
 
@@ -46,19 +47,16 @@ def getLasFilesForBuildings(buildings, filePathList, lasBoundsDict, maxBounds=No
         buildingsFound[building] = (points, paths)
 
     for lasFile in filePathList:
-        if(not lasFile.endswith(".las") and not lasFile.endswith(".laz")):
-            continue
-
         low = lasBoundsDict[lasFile][0]
         high = lasBoundsDict[lasFile][1]
 
-        eckpunkt1 = (low[0], low[1])
-        eckpunkt2 = (high[0], low[1])
-        eckpunkt3 = (high[0], high[1])
-        eckpunkt4 = (low[0], high[1])
+        edgepoint1 = (low[0], low[1])
+        edgepoint2 = (high[0], low[1])
+        edgepoint3 = (high[0], high[1])
+        edgepoint4 = (low[0], high[1])
 
-        bounds = Polygon([eckpunkt1, eckpunkt2, eckpunkt3, eckpunkt4])
-        #print("Polygon: (({:.3f}, {:.3f}), ({:.3f}, {:.3f}), ({:.3f}, {:.3f}), ({:.3f}, {:.3f}))".format(eckpunkt1[0], eckpunkt1[1], eckpunkt2[0], eckpunkt2[1], eckpunkt3[0], eckpunkt3[1], eckpunkt4[0], eckpunkt4[1]))
+        bounds = Polygon([edgepoint1, edgepoint2, edgepoint3, edgepoint4])
+        #print("Polygon: (({:.3f}, {:.3f}), ({:.3f}, {:.3f}), ({:.3f}, {:.3f}), ({:.3f}, {:.3f}))".format(edgepoint1[0], edgepoint1[1], edgepoint2[0], edgepoint2[1], edgepoint3[0], edgepoint3[1], edgepoint4[0], edgepoint4[1]))
 
         for building in buildings:#(470958.666, 5754256.334, 131.36)
             if(maxBounds != None and building.coordinates[0].x <= maxBounds[0] or building.coordinates[0].x >= maxBounds[2] or building.coordinates[0].y <= maxBounds[1] or building.coordinates[0].y >= maxBounds[3]):
@@ -127,3 +125,62 @@ def preProcessLasFiles(filePathList, callback=util.printProgressToConsole):
         callback(i, count)
 
     return [globalLowestX, globalLowestY, globalHighestX, globalHighestY, coordsForPaths]
+
+
+"""
+Cuts out a pointcloud fitting a given building, saves it to a certain file
+@param pointcloudReader  The pointcloud containing the building
+@param building  The building to be cut out
+@param savePath  The path for the new pointcloud to be saved to
+@param extendInclude  (optional) Extends the buildings bounds a little to avoid cutting the edges (too) narrow
+@param insetExclude  (optional) Excludes the inside of the building to speed up the algorithm
+@param pointsEnclosingDistance  (optional) The distance for the points around the edges to be included recursively in the algorithm, default as 1 meter distance
+"""
+def cutBuildingFromPointcloud(pointCloudReader, building, savePath, callback=util.printProgressToConsole, extendInclude=1.05, insetExclude=0.90, pointsEnclosingDistance=1, maximumBoundsExtend=3):
+    # lowBounds = pointCloudReader.getLowestCoords()
+    points = pointCloudReader.getPoints()
+    writablePoints = pointCloudReader.file.points
+
+
+    # edgePoints = []
+    #
+    # for buildingPoint in building.coordinates:
+    #     edgePoints.append(Point(buildingPoint.x, buildingPoint.y))
+
+    poly = Polygon([(point.x, point.y) for point in building.coordinates])
+
+    polyExtend = affinity.scale(poly, extendInclude, extendInclude, extendInclude)
+    polyMaximum = affinity.scale(poly, maximumBoundsExtend, maximumBoundsExtend, maximumBoundsExtend)
+    maxBounds = polyMaximum.bounds
+    minX = maxBounds[0]
+    minY = maxBounds[1]
+    maxX = maxBounds[2]
+    maxY = maxBounds[3]
+
+    polyInset = affinity.scale(poly, insetExclude, insetExclude, insetExclude)
+
+    print("Poly bounds normal:  {}".format(poly.bounds))
+    print("Poly bounds extend:  {}".format(polyExtend.bounds))
+    print("Poly bounds maximum: {}".format(polyMaximum.bounds))
+    print("Poly bounds inset:   {}".format(polyInset.bounds))
+    
+    print("Points count regular:  {}".format(len(writablePoints)))
+
+    # filteredWritablePoints = writablePoints[(points[:, 0] > maxBounds[0]) & (points[:, 1] > maxBounds[1]) & (points[:, 0] < maxBounds[2]) & (points[:, 1] < maxBounds[3])]
+    selection = (points[:, 0] > minX) & (points[:, 1] > minY) & (points[:, 0] < maxX) & (points[:, 1] < maxY)
+    writablePoints = writablePoints[selection]
+    points = points[selection]
+
+
+    print("Points count filtered: {}".format(len(writablePoints)))
+
+    pointCloudReader.writeFileToPath(savePath, points=filteredWritablePoints)
+
+
+
+    # print("Poly: {}".format(poly))
+    # print("PolyExtend: {}".format(polyExtend))
+    # print("PolyInset: {}".format(polyInset))
+    # print("Points count regular: {}".format(countPoints))
+    # print("Points count extend:  {}".format(countExtendPoints))
+    # print("Points count inset:   {}".format(countInsetPoints))
