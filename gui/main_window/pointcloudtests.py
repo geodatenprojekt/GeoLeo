@@ -28,7 +28,6 @@ class AppOgl(Opengl):
 
     def draw_pointcloud(self):
         GL.glBegin(GL.GL_POINTS)
-        print(self.points.__len__())
         for point in self.points:
             GL.glColor3d(point[3] / 65536, point[4] / 65536, point[5] / 65536)
             GL.glVertex3d(point[0], point[2], point[1])
