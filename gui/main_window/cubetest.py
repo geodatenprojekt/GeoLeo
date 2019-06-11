@@ -87,9 +87,9 @@ class AppOgl(OpenGLFrame):
         GL.glPointSize(4.0)
         GL.glMatrixMode(GL.GL_PROJECTION)
 
-        # GLU.gluOrtho2D(-5, 5, -5, 5)
-        GL.glLoadIdentity()
-        GLU.gluPerspective(90.0, self.width / self.height, 0.1, 20000)
+        GLU.gluOrtho2D(-5, 5, -5, 5)
+        #GL.glLoadIdentity()
+        #GLU.gluPerspective(90.0, self.width / self.height, 0.1, 20000)
 
 
     def updateCamera(self):

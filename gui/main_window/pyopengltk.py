@@ -669,7 +669,6 @@ class Opengl(RawOpengl):
         GL.glMatrixMode(GL.GL_PROJECTION)
         GL.glLoadIdentity()
         GLU.gluPerspective(self.fovy, float(w)/float(h), self.near, self.far)
-
         if 0:
             # Now translate the scene origin away from the world origin
             glMatrixMode(GL_MODELVIEW)
