@@ -1,7 +1,7 @@
-import laspy.file 
+from laspy.file import File
+from laspy.header import Header
 import numpy as np
-import File
-import util
+from geoleo import util
 
 """
 Class PointCloudFileIO encapsulates read/write access to .laz/.las files
@@ -36,6 +36,8 @@ class PointCloudFileIO:
             util.unzipLAZFile(self.path)
             self.path = ".laz".join(self.path.split(".laz")[0:-1]) + ".las"
 
+        #header = Header(point_format=2)
+        # self.file = File(self.path, mode='r', header=header)
         self.file = File(self.path, mode='r')
 
 
@@ -75,6 +77,13 @@ class PointCloudFileIO:
             else:
                 return np.vstack((self.file.X, self.file.Y, self.file.Z, self.file.red, self.file.green, self.file.blue)).transpose()
 
+    def getLowestCoords(self, absolute=True):
+        points = self.getPoints(absolute)
+        return np.amin(points, axis=0)
+
+    def getHighestCoords(self, absolute=True):
+        points = self.getPoints(absolute)
+        return np.amax(points, axis=0)
 
     def getPath(self):
         return self.path
