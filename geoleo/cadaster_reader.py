@@ -1,6 +1,5 @@
 """Functions for reading the CityGML files"""
 
-
 import xml.etree.ElementTree as ET
 from geoleo import cadaster
 from geoleo import file_helper
@@ -20,7 +19,6 @@ XML_POLYGON = GML_NAME_SPACE + 'Polygon'
 XML_LINEAR_RING = GML_NAME_SPACE + 'LinearRing'
 XML_POS_LIST = GML_NAME_SPACE + 'posList'
 
-
 def get_coordinates(points):
     """Get a Building object from a string array of coordinate points
 
@@ -30,12 +28,28 @@ def get_coordinates(points):
     Returns:
         A Building object with all coordinates
     """
+    
+    if points is None:
+        return None
+
+    if len(points) < 3:
+        raise ValueError
+
     coordinates = list()
 
-    #for counter in range(0, len(points)):
     for counter in enumerate(points):
         counter = counter[0]
         coord = (counter + 1) % 3
+        
+        if isinstance(points[counter], float) is False:
+            if isinstance(points[counter], str):
+                check_point = points[counter].replace('.','',1).replace('-','',1).isdigit()
+                if check_point  is False:
+                    raise ValueError
+                points[counter] = float(points[counter])
+            else:
+                raise ValueError
+
         if coord == 1:
             _x = float(points[counter])
         elif coord == 2:
@@ -57,6 +71,10 @@ def get_buildings(directory):
     Returns:
         A List with all Building objects
     """
+
+    if directory is None:
+        return None
+
     file_names = file_helper.get_all_paths_from_dir(directory)
 
     buildings = list()
