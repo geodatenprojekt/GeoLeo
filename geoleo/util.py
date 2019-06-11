@@ -3,6 +3,15 @@ import subprocess
 import numpy as np
 
 """
+Prints the progress to the console
+    @param current  The current step
+    @param max  The maximum number of steps
+"""
+def printProgressToConsole(current, max):
+    print("{:.2f}%".format((current / max) * 100))
+
+
+"""
 Returns the absolute path to the relative path that was specified
     @param file  The file which's path is requested. Can specify file in multiple subfolders
     @return  The absolute path to the file
@@ -12,7 +21,11 @@ def getPathToFile(file):
         joined = os.path.join(directory, file)
         return joined
 
-
+"""
+Returns the absolute path relative to the specified path and the project root
+    @param file  The file which's path is requested. Can specify file in multiple subfolders
+    @return  The absolute path to the file
+"""
 def getPathRelativeToRoot(file):
     rootDir = os.path.dirname(os.path.abspath(__file__))
     return os.path.join(rootDir, "../"+file)
