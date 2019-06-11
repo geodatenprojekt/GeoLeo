@@ -28,15 +28,15 @@ class Coordinate:
         y: Y Coordinate
         z: Z Coordinate
     """
-    _x = 0
-    _y = 0
-    _z = 0
+    x = 0
+    y = 0
+    z = 0
 
     def __init__(self, x, y, z):
         """Set x, y and z"""
-        self._x = x
-        self._y = y
-        self._z = z
+        self.x = x
+        self.y = y
+        self.z = z
 
     def __eq__(self, other):
         return self.x == other.x and self.y == other.y and self.z == other.z
