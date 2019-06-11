@@ -1,3 +1,4 @@
+import os
 import tkinter as Tk
 from OpenGL.GL import *
 from OpenGL.GLU import *
@@ -27,24 +28,40 @@ class AppOgl(Opengl):
         glEnd()
 
     def init_cadaster(self):
-        cad = cadaster.Cadaster("../../example_data/cadaster_examples")
+        cad = cadaster.Cadaster(util.getPathRelativeToRoot("/example_data/cadaster_examples/"))
+
 
         self.cadlist = glGenLists(1)
         glNewList(self.cadlist, GL_COMPILE)
 
         glColor3d(1, 0, 0)
+
+        vertices = []
+
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
         for building in cad.buildings:
             glBegin(GL_POLYGON)
             for coord in building.coordinates:
                 x = self.parser.parse_coords(coord._x, coord._y, coord._z)
-                glVertex3d(x[0], x[1], x[2])
-                self.cam = x
+                glVertex3d(x[0], x[2], x[1])
+                vertices.append((x[0], x[2], x[1]))
             glEnd()
         glEndList()
 
+
+        #self.cam = np.amax(vertices, axis=0)
+        print(np.amax(vertices, axis=0))
+        print(np.amin(vertices, axis=0))
+
     def init_pointcloud(self):
+        '''
+        47094_575411_0011.las
+        47094_575419_0011.las
+        47094_575427_0011.las
+        '''
+
         reader = pointcloud.PointCloudFileIO(
-            util.getPathRelativeToRoot("/example_data/pointcloud_examples/47078_575419_0011.laz"))
+            util.getPathRelativeToRoot("/example_data/pointcloud_examples/47094_575427_0011.las"))
 
         self.cloudlist = glGenLists(1)
         glNewList(self.cloudlist, GL_COMPILE)
@@ -56,6 +73,9 @@ class AppOgl(Opengl):
 
         self.parser = AbsParser(min, max)
         points = self.parser.parse_list(points)
+
+
+        self.cam = (points[0][0], points[0][2], points[0][1])
 
         for point in points:
             glColor3d(point[3] / 65536, point[4] / 65536, point[5] / 65536)
@@ -71,7 +91,7 @@ class AppOgl(Opengl):
 
     def initgl(self):
         self.set_background(173 / 255, 203 / 255, 255 / 255)
-        self.set_eyepoint(5)
+        self.set_eyepoint(5000)
 
         glPointSize(2)
 
@@ -93,6 +113,7 @@ class AppOgl(Opengl):
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
             self.draw_pointcloud()
+            self.draw_cadaster()
 
             glFlush()
 

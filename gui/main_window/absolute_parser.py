@@ -16,26 +16,20 @@ class AbsParser:
     def parse_coords(self, x, y, z):
         list = []
 
-        print("BEFORE: ", x, y, z)
-
+        #print(x, y, z)
         x -= self.min[0]
-        print("x -= self.min[0]", x, self.min[0])
-        y -= self.min[2]
-        z -= self.min[1]
+        y -= self.min[1]
+        #z -= self.min[2]
 
-        x -= self.mid[0]
-        y -= self.mid[2]
-        z -= self.mid[1]
+        #print(x, y, z)
 
         x = int(x * 1000)
         y = int(y * 1000)
-        z = int(z * 1000)
+        #z = int(z * 1000)
 
         list.append(x)
         list.append(y)
         list.append(z)
-
-        print("AFTER: ", list)
 
         return list
 
@@ -53,7 +47,7 @@ class AbsParser:
                 for y in range(0, 3):
                     curr = list[x][y]
                     curr -= self.min[y]
-                    curr -= self.mid[y]
+                    #curr -= self.mid[y]
                     curr = int(curr * 1000)
                     inner.append(curr)
                 for y in range(3, 6):
