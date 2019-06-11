@@ -34,6 +34,9 @@ class Coordinate:
     def __eq__(self, other):
         return self.x == other.x and self.y == other.y and self.z == other.z
 
+    def __hash__(self):
+        return self.x.__hash__() + 7 * self.y.__hash__()
+
 class Building:
     """Building Class
 

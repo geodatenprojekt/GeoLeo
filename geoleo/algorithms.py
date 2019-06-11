@@ -2,8 +2,9 @@ from geoleo.pointcloud import PointCloudFileIO
 from geoleo import cadaster
 import geoleo.cadaster_reader as CadReader
 import geoleo.util as util
-from shapely.geometry import Point, Polygon
 from shapely import affinity
+from shapely.geometry import Point, Polygon
+from shapely.ops import cascaded_union
 import numpy as np
 import os
 
@@ -126,6 +127,105 @@ def preProcessLasFiles(filePathList, callback=util.printProgressToConsole):
 
     return [globalLowestX, globalLowestY, globalHighestX, globalHighestY, coordsForPaths]
 
+"""
+Combine buildings inside a cadaster to new buildings (so that they represent actual, physical buildings)
+@param buildings  A list of all buildings
+@return  A list of all PHYSICAL buildings
+"""
+def combineBuildingsToGroups(buildings):
+    uniquePoints = {}
+    buildingGroups = []
+    i = 0
+    for building in buildings:
+        for point in building.coordinates:
+            if(point in uniquePoints and uniquePoints[point] != i):
+                otherBuildingIndex = uniquePoints[point]
+                otherBuilding = buildings[otherBuildingIndex]
+                # print("Building({}) and Building({}) have a point in common: Point at ({}, {}, {})".format(i, otherBuildingIndex, point.x, point.y))
+                found = False
+                for buildingGroup in buildingGroups:
+                    if(otherBuilding in buildingGroup and not building in buildingGroup):
+                        buildingGroup.append(building)
+                        found = True
+                if(found == False):
+                    buildingGroups.append([building])
+            else:
+                uniquePoints[point] = i
+        i += 1
+    # print("Found building groups: {}".format(len(buildingGroups)))
+    countGroups = 0
+    combinedBuildings = []
+    for buildingGroup in buildingGroups:
+        if(len(buildingGroup) > 1):
+            building = combineBuildingGroup(buildingGroup)
+            if(building != None):
+                combinedBuildings.append(building)
+        else:
+            combinedBuildings.append(buildingGroup[0])
+            # pass
+
+    return combinedBuildings
+
+"""
+Combines one group of buildings to a total building
+"""
+def combineBuildingGroup(buildingGroup, pointLeeway=0.001):
+    polygons = []
+    for building in buildingGroup:
+        points = []
+        for point in building.coordinates:
+            points.append((point.x, point.y, point.z))
+        polygons.append(Polygon(points))
+
+    # for poly in polygons:
+        # print("Polygon: {}".format(poly))
+
+    union = cascaded_union(polygons)
+    building = cadaster.Building()
+    if(union.boundary.is_closed == False):
+        print("Failed boundary:")
+        anchor = union.boundary[0].coords[0]
+        print("Anchor: {}".format(anchor))
+        i = 0
+        firstBoundaryCoords = []
+        for boundary in union.boundary:
+            print("Boundary({}):".format(i))
+            iCoord = 0
+            for coord in boundary.coords:
+                if(i == 0):
+                    firstBoundaryCoords.append(coord)
+                else:
+                    shapelyCoord = Point(coord[0], coord[1], coord[2])
+                    for firstBoundaryCoord in firstBoundaryCoords:
+                        shapelyBoundaryCoord = Point(firstBoundaryCoord[0], firstBoundaryCoord[1], firstBoundaryCoord[2])
+                        if(shapelyCoord != shapelyBoundaryCoord and shapelyCoord.distance(shapelyBoundaryCoord) <= pointLeeway):
+                            print("Point to replace:       ({:.5f}, {:.5f}, {:.5f})".format(shapelyCoord.x, shapelyCoord.y, shapelyCoord.z))
+                            print("Boundary before Point:  ({:.5f}, {:.5f}, {:.5f})".format(shapelyBoundaryCoord.x, shapelyBoundaryCoord.y, shapelyBoundaryCoord.z))
+                            for coordinate in buildingGroup[i].coordinates:
+                                if(coordinate.x == shapelyCoord.x and coordinate.y == shapelyCoord.y and coordinate.z == shapelyCoord.z):
+                                    coordinate.x = shapelyBoundaryCoord.x
+                                    coordinate.y = shapelyBoundaryCoord.y
+                                    coordinate.z = shapelyBoundaryCoord.z
+                                    print("Point after replace:  ({:.5f}, {:.5f}, {:.5f})".format(coordinate.x, coordinate.y, coordinate.z))
+
+
+                            # print("Point to replace:       ({:.5f}, {:.5f})".format(shapelyCoord.x - anchor[0], shapelyCoord.y - anchor[1]))
+                            # print("Boundary before Point:  ({:.5f}, {:.5f})".format(shapelyBoundaryCoord.x - anchor[0], shapelyBoundaryCoord.y - anchor[1]))
+                            # coordinateReplace = buildingGroup[i].coordinates[iCoord]
+                            #
+                            # coordinateReplace.x = shapelyBoundaryCoord.x
+                            # coordinateReplace.y = shapelyBoundaryCoord.y
+                            # coordinateReplace.z = shapelyBoundaryCoord.z
+
+
+                print("Point at: ({:.5f}, {:.5f}, {:.5f})".format(coord[0] - anchor[0], coord[1] - anchor[1], coord[2] - anchor[2]))
+                iCoord += 1
+            i += 1
+        # return combineBuildingGroup(buildingGroup)
+        return None
+    for coord in union.boundary.coords:
+        building.coordinates.append(cadaster.Coordinate(coord[0], coord[1], coord[2]))
+    return building
 
 """
 Cuts out a pointcloud fitting a given building, saves it to a certain file
@@ -136,7 +236,7 @@ Cuts out a pointcloud fitting a given building, saves it to a certain file
 @param insetExclude  (optional) Excludes the inside of the building to speed up the algorithm
 @param pointsEnclosingDistance  (optional) The distance for the points around the edges to be included recursively in the algorithm, default as 1 meter distance
 """
-def cutBuildingFromPointcloud(pointCloudReader, building, savePath, callback=util.printProgressToConsole, extendInclude=1.05, insetExclude=0.90, pointsEnclosingDistance=1, maximumBoundsExtend=3):
+def cutBuildingFromPointcloud(pointCloudReader, building, savePath, callback=util.printProgressToConsole, extendInclude=1.05, insetExclude=0.90, pointsEnclosingDistance=1, maximumBoundsExtend=1.5):
     # lowBounds = pointCloudReader.getLowestCoords()
     points = pointCloudReader.getPoints()
     writablePoints = pointCloudReader.file.points
@@ -163,7 +263,7 @@ def cutBuildingFromPointcloud(pointCloudReader, building, savePath, callback=uti
     print("Poly bounds extend:  {}".format(polyExtend.bounds))
     print("Poly bounds maximum: {}".format(polyMaximum.bounds))
     print("Poly bounds inset:   {}".format(polyInset.bounds))
-    
+
     print("Points count regular:  {}".format(len(writablePoints)))
 
     # filteredWritablePoints = writablePoints[(points[:, 0] > maxBounds[0]) & (points[:, 1] > maxBounds[1]) & (points[:, 0] < maxBounds[2]) & (points[:, 1] < maxBounds[3])]
@@ -171,10 +271,22 @@ def cutBuildingFromPointcloud(pointCloudReader, building, savePath, callback=uti
     writablePoints = writablePoints[selection]
     points = points[selection]
 
+    selection = []
+
+    for point in points:
+        shapelyPoint = Point(point[0], point[1])
+        if(polyExtend.contains(shapelyPoint)):
+            selection.append(True)
+        else:
+            selection.append(False)
+
+    writablePoints = writablePoints[selection]
+    points = points[selection]
+
 
     print("Points count filtered: {}".format(len(writablePoints)))
 
-    pointCloudReader.writeFileToPath(savePath, points=filteredWritablePoints)
+    pointCloudReader.writeFileToPath(savePath, points=writablePoints)
 
 
 
