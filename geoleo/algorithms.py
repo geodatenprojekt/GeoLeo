@@ -134,13 +134,89 @@ Combine buildings inside a cadaster to new buildings (so that they represent act
 """
 def combineBuildingsToGroups(buildings):
     uniquePoints = {}
-    buildingGroups = []
+    buildingGroups = {}
     i = 0
+    foundCommonPoints = 0
     for building in buildings:
+        hadMatchingPoint = False
+        foundGroup = False
+
         for point in building.coordinates:
             if(point in uniquePoints and uniquePoints[point] != i):
                 otherBuildingIndex = uniquePoints[point]
                 otherBuilding = buildings[otherBuildingIndex]
+                # print("Building({}) and Building({}) have a point in common: Point at ({}, {}, {})".format(i, otherBuildingIndex, point.x, point.y, point.z))
+                foundCommonPoints += 1
+                hadMatchingPoint = True
+
+                if(otherBuildingIndex in buildingGroups and not building in buildingGroups[otherBuildingIndex]):
+                    buildingGroups[otherBuildingIndex].add(building)
+                    foundGroup = True
+
+            else:
+                uniquePoints[point] = i
+        if(not hadMatchingPoint):
+            buildingGroups[i] = {building}
+        i += 1
+    print("Found common points: {}".format(foundCommonPoints))
+    print("Found building groups: {}".format(len(buildingGroups)))
+
+    # for index, buildingGroup in buildingGroups.items():
+    #     toPrint = "Building Group: ("
+    #     for building in buildingGroup:
+    #         toPrint += "{},".format(buildings.index(building))
+    #     toPrint = toPrint[0:-1]+")"
+    #     print(toPrint)
+    # print("======================\n\n")
+
+    countGroups = 0
+    combinedBuildings = []
+    for index, buildingGroup in buildingGroups.items():
+        if(len(buildingGroup) > 1):
+            result = combineBuildingGroup(buildingGroup)
+            if(type(result) == type([])): #Case: Joining buildings failed, returned both buildings in a list
+                for building in result:
+                    combinedBuildings.append(building)
+            else: #Case: Joining succeeded, result is a building
+                combinedBuildings.append(result)
+
+        else:
+            combinedBuildings.append(buildingGroup.pop())
+            # pass
+
+    return combinedBuildings
+
+
+"""
+Pre process a list of buildings
+ 470958.232
+5755390.323
+"""
+def preProcessBuildingList(buildingList, pointLeeway=0.001, callback=util.printProgressToConsole):
+    uniquePoints = {}
+    buildingGroups = []
+    i = 0
+    replacedPoints = 0
+    notReplaced = 0
+    max = len(buildingList)
+    for building in buildingList:
+        for point in building.coordinates:
+            foundNear = False
+            for uniquePoint in uniquePoints:
+                # if(uniquePoints[uniquePoint] != i and (abs(point.x - uniquePoint.x) < pointLeeway) and (abs(point.y - uniquePoint.y < pointLeeway)) and (abs(point.z - uniquePoint.z < pointLeeway))):
+                if(uniquePoints[uniquePoint] != i and not (abs(point.x - uniquePoint.x) > pointLeeway*30) and not (abs(point.y - uniquePoint.y) > pointLeeway*30) and not (abs(point.z - uniquePoint.z) > pointLeeway*30)):
+                    shapelyPoint = Point(point.x, point.y, point.z)
+                    shapelyUniquePoint = Point(uniquePoint.x, uniquePoint.y, uniquePoint.z)
+                    if(shapelyPoint != shapelyUniquePoint and shapelyPoint.distance(shapelyUniquePoint) < pointLeeway):
+                        # print("Found point({}) close to unique point({}): {} --- {}".format(i, uniquePoints[uniquePoint], point, uniquePoint))
+                        point.x = uniquePoint.x
+                        point.y = uniquePoint.y
+                        point.z = uniquePoint.z
+                        foundNear = True
+                        replacedPoints += 1
+            if(foundNear == True):
+                otherBuildingIndex = uniquePoints[point]
+                otherBuilding = buildingList[otherBuildingIndex]
                 # print("Building({}) and Building({}) have a point in common: Point at ({}, {}, {})".format(i, otherBuildingIndex, point.x, point.y))
                 found = False
                 for buildingGroup in buildingGroups:
@@ -151,20 +227,13 @@ def combineBuildingsToGroups(buildings):
                     buildingGroups.append([building])
             else:
                 uniquePoints[point] = i
+                notReplaced += 1
         i += 1
-    # print("Found building groups: {}".format(len(buildingGroups)))
-    countGroups = 0
-    combinedBuildings = []
-    for buildingGroup in buildingGroups:
-        if(len(buildingGroup) > 1):
-            building = combineBuildingGroup(buildingGroup)
-            if(building != None):
-                combinedBuildings.append(building)
-        else:
-            combinedBuildings.append(buildingGroup[0])
-            # pass
+        callback(i, max)
 
-    return combinedBuildings
+    print("Replaced a total of ({})/({}) points.".format(replacedPoints, notReplaced))
+
+
 
 """
 Combines one group of buildings to a total building
@@ -183,46 +252,14 @@ def combineBuildingGroup(buildingGroup, pointLeeway=0.001):
     union = cascaded_union(polygons)
     building = cadaster.Building()
     if(union.boundary.is_closed == False):
-        print("Failed boundary:")
-        anchor = union.boundary[0].coords[0]
-        print("Anchor: {}".format(anchor))
-        i = 0
-        firstBoundaryCoords = []
+        print("Failed boundary!")
+        buildings = []
         for boundary in union.boundary:
-            print("Boundary({}):".format(i))
-            iCoord = 0
+            building = cadaster.Building()
             for coord in boundary.coords:
-                if(i == 0):
-                    firstBoundaryCoords.append(coord)
-                else:
-                    shapelyCoord = Point(coord[0], coord[1], coord[2])
-                    for firstBoundaryCoord in firstBoundaryCoords:
-                        shapelyBoundaryCoord = Point(firstBoundaryCoord[0], firstBoundaryCoord[1], firstBoundaryCoord[2])
-                        if(shapelyCoord != shapelyBoundaryCoord and shapelyCoord.distance(shapelyBoundaryCoord) <= pointLeeway):
-                            print("Point to replace:       ({:.5f}, {:.5f}, {:.5f})".format(shapelyCoord.x, shapelyCoord.y, shapelyCoord.z))
-                            print("Boundary before Point:  ({:.5f}, {:.5f}, {:.5f})".format(shapelyBoundaryCoord.x, shapelyBoundaryCoord.y, shapelyBoundaryCoord.z))
-                            for coordinate in buildingGroup[i].coordinates:
-                                if(coordinate.x == shapelyCoord.x and coordinate.y == shapelyCoord.y and coordinate.z == shapelyCoord.z):
-                                    coordinate.x = shapelyBoundaryCoord.x
-                                    coordinate.y = shapelyBoundaryCoord.y
-                                    coordinate.z = shapelyBoundaryCoord.z
-                                    print("Point after replace:  ({:.5f}, {:.5f}, {:.5f})".format(coordinate.x, coordinate.y, coordinate.z))
-
-
-                            # print("Point to replace:       ({:.5f}, {:.5f})".format(shapelyCoord.x - anchor[0], shapelyCoord.y - anchor[1]))
-                            # print("Boundary before Point:  ({:.5f}, {:.5f})".format(shapelyBoundaryCoord.x - anchor[0], shapelyBoundaryCoord.y - anchor[1]))
-                            # coordinateReplace = buildingGroup[i].coordinates[iCoord]
-                            #
-                            # coordinateReplace.x = shapelyBoundaryCoord.x
-                            # coordinateReplace.y = shapelyBoundaryCoord.y
-                            # coordinateReplace.z = shapelyBoundaryCoord.z
-
-
-                print("Point at: ({:.5f}, {:.5f}, {:.5f})".format(coord[0] - anchor[0], coord[1] - anchor[1], coord[2] - anchor[2]))
-                iCoord += 1
-            i += 1
-        # return combineBuildingGroup(buildingGroup)
-        return None
+                building.coordinates.append(cadaster.Coordinate(coord[0], coord[1], coord[2]))
+            buildings.append(building)
+        return buildings
     for coord in union.boundary.coords:
         building.coordinates.append(cadaster.Coordinate(coord[0], coord[1], coord[2]))
     return building
@@ -236,7 +273,7 @@ Cuts out a pointcloud fitting a given building, saves it to a certain file
 @param insetExclude  (optional) Excludes the inside of the building to speed up the algorithm
 @param pointsEnclosingDistance  (optional) The distance for the points around the edges to be included recursively in the algorithm, default as 1 meter distance
 """
-def cutBuildingFromPointcloud(pointCloudReader, building, savePath, callback=util.printProgressToConsole, extendInclude=1.05, insetExclude=0.90, pointsEnclosingDistance=1, maximumBoundsExtend=1.5):
+def cutBuildingFromPointcloud(pointCloudReader, building, savePath, callback=util.printProgressToConsole, extendInclude=1.01, insetExclude=0.90, pointsEnclosingDistance=1, maximumBoundsExtend=1.5):
     # lowBounds = pointCloudReader.getLowestCoords()
     points = pointCloudReader.getPoints()
     writablePoints = pointCloudReader.file.points

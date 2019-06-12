@@ -7,8 +7,8 @@ Prints the progress to the console
     @param current  The current step
     @param max  The maximum number of steps
 """
-def printProgressToConsole(current, max):
-    print("{:.2f}%".format((current / max) * 100))
+def printProgressToConsole(current, max, precedent=""):
+    print("{}{:.2f}%".format(precedent, (current / max) * 100))
 
 
 """
@@ -66,3 +66,7 @@ def getPointsCloseToAnchor(anchor, numpyArr, distance=1000):
 
     #Return a boolean array where True means a point is within <distance> units of the anchor point
     return numpyArr < distance
+
+def getFileNameForBuilding(building):
+    anchor = building.coordinates[0]
+    return "{}_{}_{}.las".format(round(anchor.x, 0), round(anchor.y, 0), round(anchor.z, 0))

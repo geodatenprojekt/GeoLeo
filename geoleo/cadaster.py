@@ -37,6 +37,9 @@ class Coordinate:
     def __hash__(self):
         return self.x.__hash__() + 7 * self.y.__hash__()
 
+    def __str__(self):
+        return "({:.3f}, {:.3f}, {:.3f})".format(self.x, self.y, self.z)
+
 class Building:
     """Building Class
 
