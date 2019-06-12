@@ -1,7 +1,5 @@
-import os
 import tkinter as Tk
 from OpenGL.GL import *
-from OpenGL.GLU import *
 from pyopengltk import Opengl
 from geoleo import pointcloud
 from geoleo import util
@@ -61,21 +59,27 @@ class AppOgl(Opengl):
         '''
 
         reader = pointcloud.PointCloudFileIO(
-            util.getPathRelativeToRoot("/example_data/pointcloud_examples/47094_575427_0011.las"))
+            util.getPathRelativeToRoot("/example_data/pointcloud_examples/47094_575419_0011.las"))
+
 
         self.cloudlist = glGenLists(1)
         glNewList(self.cloudlist, GL_COMPILE)
         glBegin(GL_POINTS)
         points = reader.getPointsWithColors(absolute=True)
 
-        max = np.amax(points, axis=0)
-        min = np.amin(points, axis=0)
+        points_max = np.amax(points, axis=0)
+        points_min = np.amin(points, axis=0)
 
-        self.parser = AbsParser(min, max)
+        self.parser = AbsParser(points_min, points_max)
         points = self.parser.parse_list(points)
 
+        eye = self.parser.parse_coords(points_max[0], points_max[1], points_max[2])
+        points_med = np.median(points, axis=0)
 
-        self.cam = (points[0][0], points[0][2], points[0][1])
+        print(eye)
+        print(np.amax(points, axis=0))
+        self.set_eyepoint(eye[2] + max(eye[1], eye[0]))
+        self.cam = (points_med[0], points_med[2], points_med[1])
 
         for point in points:
             glColor3d(point[3] / 65536, point[4] / 65536, point[5] / 65536)
@@ -91,19 +95,18 @@ class AppOgl(Opengl):
 
     def initgl(self):
         self.set_background(173 / 255, 203 / 255, 255 / 255)
-        self.set_eyepoint(5000)
 
         glPointSize(2)
 
-        self.fovy = 60.0
+        self.fovy = 40.0
         self.near = 0.1
         self.far = 999999.0
 
         self.init_pointcloud()
         self.init_cadaster()
 
-        print(self.cam)
-        self.set_centerpoint(self.cam[0], self.cam[1], self.cam[2])
+        glRotatef(90.0, 1., 0., 0.)
+        self.set_centerpoint(self.cam[0], -self.cam[2], 0)
 
         self.initialised = 1
         pass
@@ -114,6 +117,8 @@ class AppOgl(Opengl):
 
             self.draw_pointcloud()
             self.draw_cadaster()
+
+            #print(self.xcenter, self.ycenter, self.zcenter, self.distance)
 
             glFlush()
 

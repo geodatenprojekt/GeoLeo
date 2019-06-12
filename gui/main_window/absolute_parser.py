@@ -16,16 +16,13 @@ class AbsParser:
     def parse_coords(self, x, y, z):
         list = []
 
-        #print(x, y, z)
         x -= self.min[0]
         y -= self.min[1]
-        #z -= self.min[2]
-
-        #print(x, y, z)
+        z -= self.min[2]
 
         x = int(x * 1000)
         y = int(y * 1000)
-        #z = int(z * 1000)
+        z = int(z * 1000)
 
         list.append(x)
         list.append(y)
