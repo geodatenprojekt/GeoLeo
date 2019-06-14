@@ -46,4 +46,6 @@ class Building:
     Attributes:
         coordinates: All Coordinate objects from the building
     """
-    coordinates = list()
+
+    def __init__(self):
+        self.coordinates = list()

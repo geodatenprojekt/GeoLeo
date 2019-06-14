@@ -31,9 +31,9 @@ for cadasterPath in cadasterPaths:
 
     print("\n\n\n")
 
-    print("Combining buildings to parts to whole buildings..")
+    print("Combining buildings parts to whole buildings..")
     buildingsCombined = algorithms.combineBuildingsToGroups(cad.buildings)
-    buildingsCombined = cad.buildings
+    # buildingsCombined = cad.buildings
 
     print("Count after combine: {}".format(len(buildingsCombined)))
 
@@ -49,11 +49,11 @@ for cadasterPath in cadasterPaths:
             continue
         paths = buildingInfo[1]
         pcr = PointCloudFileIO(paths[0])
-        pcr.mergePointClouds(paths[1:], "joined_testing_cut.las")
-        del(pcr)
-        pcr = PointCloudFileIO("joined_testing_cut.las")
-        filename = util.getFileNameForBuilding(building)
-        algorithms.cutBuildingFromPointcloud(pcr, building, "cut_clouds/"+filename)
+        if(len(paths) > 1):
+            pcr.mergePointClouds(paths[1:], "temp.las")
+            del(pcr)
+            pcr = PointCloudFileIO("temp.las")
+        algorithms.cutBuildingFromPointcloud(pcr, building, "cut_with")
     #==========================================================
     i += 1
     util.printProgressToConsole(i, max, "Cadaster List: ")

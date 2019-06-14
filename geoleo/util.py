@@ -69,4 +69,13 @@ def getPointsCloseToAnchor(anchor, numpyArr, distance=1000):
 
 def getFileNameForBuilding(building):
     anchor = building.coordinates[0]
-    return "{}_{}_{}.las".format(round(anchor.x, 0), round(anchor.y, 0), round(anchor.z, 0))
+    return "{}_{}_{}.las".format(int(round(anchor.x, 0)), int(round(anchor.y, 0)), int(round(anchor.z, 0)))
+
+def getBuildingArea(building):
+    from shapely.geometry import Polygon
+    points = []
+    for point in building.coordinates:
+        # print("After merge: Coords: ({}, {}, {})".format(point.x, point.y, point.z))
+        points.append((point.x, point.y, point.z))
+    p = Polygon(points)
+    return p.area

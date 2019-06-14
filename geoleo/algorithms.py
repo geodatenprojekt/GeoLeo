@@ -51,12 +51,12 @@ def getLasFilesForBuildings(buildings, filePathList, lasBoundsDict, maxBounds=No
         low = lasBoundsDict[lasFile][0]
         high = lasBoundsDict[lasFile][1]
 
-        edgepoint1 = (low[0], low[1])
-        edgepoint2 = (high[0], low[1])
-        edgepoint3 = (high[0], high[1])
-        edgepoint4 = (low[0], high[1])
+        # edgepoint1 = (low[0], low[1])
+        # edgepoint2 = (high[0], low[1])
+        # edgepoint3 = (high[0], high[1])
+        # edgepoint4 = (low[0], high[1])
 
-        bounds = Polygon([edgepoint1, edgepoint2, edgepoint3, edgepoint4])
+        # bounds = Polygon([edgepoint1, edgepoint2, edgepoint3, edgepoint4])
         #print("Polygon: (({:.3f}, {:.3f}), ({:.3f}, {:.3f}), ({:.3f}, {:.3f}), ({:.3f}, {:.3f}))".format(edgepoint1[0], edgepoint1[1], edgepoint2[0], edgepoint2[1], edgepoint3[0], edgepoint3[1], edgepoint4[0], edgepoint4[1]))
 
         for building in buildings:#(470958.666, 5754256.334, 131.36)
@@ -65,9 +65,10 @@ def getLasFilesForBuildings(buildings, filePathList, lasBoundsDict, maxBounds=No
 
             i = 0
             for buildingPoint in building.coordinates:
-                point = Point(buildingPoint.x, buildingPoint.y)
+                # point = Point(buildingPoint.x, buildingPoint.y)
 
-                if(bounds.contains(point)):
+                # if(bounds.contains(point)):
+                if(buildingPoint.x > low[0] and buildingPoint.x < high[0] and buildingPoint.y > low[1] and buildingPoint.y < high[1]):
                     #print("Pointcloud contains point [{} {}]".format(buildingPoint.x, buildingPoint.y))
                     buildingsFound[building][0][i] = True
                     if(not lasFile in buildingsFound[building][1]):
@@ -162,11 +163,15 @@ def combineBuildingsToGroups(buildings):
     print("Found building groups: {}".format(len(buildingGroups)))
 
     # for index, buildingGroup in buildingGroups.items():
-    #     toPrint = "Building Group: ("
+    #     i = 0
     #     for building in buildingGroup:
-    #         toPrint += "{},".format(buildings.index(building))
-    #     toPrint = toPrint[0:-1]+")"
-    #     print(toPrint)
+    #         points = []
+    #         for point in building.coordinates:
+    #             points.append((point.x, point.y, point.z))
+    #         p = Polygon(points)
+    #         bounds = p.bounds
+    #         print("Before combine: Group({}): Polygon({}) with Area {} | Bounds Length: ({:.3f}, {:.3f})".format(index, i, p.area, bounds[2] - bounds[0], bounds[3] - bounds[1]))
+    #         i += 1
     # print("======================\n\n")
 
     countGroups = 0
@@ -174,7 +179,7 @@ def combineBuildingsToGroups(buildings):
     for index, buildingGroup in buildingGroups.items():
         if(len(buildingGroup) > 1):
             result = combineBuildingGroup(buildingGroup)
-            if(type(result) == type([])): #Case: Joining buildings failed, returned both buildings in a list
+            if(type(result) == type([])): #Case: Joining buildings failed, returned 2 or more buildings in a list
                 for building in result:
                     combinedBuildings.append(building)
             else: #Case: Joining succeeded, result is a building
@@ -183,6 +188,17 @@ def combineBuildingsToGroups(buildings):
         else:
             combinedBuildings.append(buildingGroup.pop())
             # pass
+
+    i = 0
+    for building in combinedBuildings:
+        points = []
+        for point in building.coordinates:
+            points.append((point.x, point.y, point.z))
+        p = Polygon(points)
+        bounds = p.bounds
+        # print("Group({}): Polygon: {} with Area {} | Bounds Length: ({:.3f}, {:.3f})".format(buildingGroupCount, i, p, p.area, bounds[2] - bounds[0], bounds[3] - bounds[1]))
+        # print("Group({}): Polygon with Area {} | Bounds Length: ({:.3f}, {:.3f})".format(i, p.area, bounds[2] - bounds[0], bounds[3] - bounds[1]))
+        i += 1
 
     return combinedBuildings
 
@@ -231,20 +247,27 @@ def preProcessBuildingList(buildingList, pointLeeway=0.001, callback=util.printP
         i += 1
         callback(i, max)
 
-    print("Replaced a total of ({})/({}) points.".format(replacedPoints, notReplaced))
+    print("Replaced a total of ({})/({}) points.".format(replacedPoints, notReplaced+replacedPoints))
 
 
-
+buildingGroupCount = 0
 """
 Combines one group of buildings to a total building
 """
 def combineBuildingGroup(buildingGroup, pointLeeway=0.001):
+    global buildingGroupCount
     polygons = []
+    i = 0
     for building in buildingGroup:
         points = []
         for point in building.coordinates:
             points.append((point.x, point.y, point.z))
-        polygons.append(Polygon(points))
+        p = Polygon(points)
+        polygons.append(p)
+        bounds = p.bounds
+        # print("Group({}): Area of polygon({}) before union: {}".format(buildingGroupCount, i, util.getBuildingArea(building)))
+        # print("Group({}): Polygon({}): Polygon: {} with Area {} | Bounds Length: ({:.3f}, {:.3f})".format(buildingGroupCount, i, p, p.area, bounds[2] - bounds[0], bounds[3] - bounds[1]))
+        i += 1
 
     # for poly in polygons:
         # print("Polygon: {}".format(poly))
@@ -259,9 +282,15 @@ def combineBuildingGroup(buildingGroup, pointLeeway=0.001):
             for coord in boundary.coords:
                 building.coordinates.append(cadaster.Coordinate(coord[0], coord[1], coord[2]))
             buildings.append(building)
+        buildingGroupCount += 1
         return buildings
+    # print("Group({}): Area of union: {}".format(buildingGroupCount, union.area))
     for coord in union.boundary.coords:
+        # print("Group({}): Coords: ({}, {}, {})".format(buildingGroupCount, coord[0], coord[1], coord[2]))
         building.coordinates.append(cadaster.Coordinate(coord[0], coord[1], coord[2]))
+        # print("Building coordinates count: {}".format(len(building.coordinates)))
+    # print("Group({}): Area of union building AFTER manual merge: {}\n".format(buildingGroupCount, util.getBuildingArea(building)))
+    buildingGroupCount += 1
     return building
 
 """
@@ -273,7 +302,7 @@ Cuts out a pointcloud fitting a given building, saves it to a certain file
 @param insetExclude  (optional) Excludes the inside of the building to speed up the algorithm
 @param pointsEnclosingDistance  (optional) The distance for the points around the edges to be included recursively in the algorithm, default as 1 meter distance
 """
-def cutBuildingFromPointcloud(pointCloudReader, building, savePath, callback=util.printProgressToConsole, extendInclude=1.01, insetExclude=0.90, pointsEnclosingDistance=1, maximumBoundsExtend=1.5):
+def cutBuildingFromPointcloud(pointCloudReader, building, saveFolder, callback=util.printProgressToConsole, extendInclude=1.01, insetExclude=0.90, pointsEnclosingDistance=1, maximumBoundsExtend=1.25):
     # lowBounds = pointCloudReader.getLowestCoords()
     points = pointCloudReader.getPoints()
     writablePoints = pointCloudReader.file.points
@@ -296,7 +325,11 @@ def cutBuildingFromPointcloud(pointCloudReader, building, savePath, callback=uti
 
     polyInset = affinity.scale(poly, insetExclude, insetExclude, insetExclude)
 
-    print("Poly bounds normal:  {}".format(poly.bounds))
+    anchor = poly.centroid
+
+    filename = "{}_{}_{}.las".format(int(round(anchor.x, 0)), int(round(anchor.y, 0)), int(round(building.coordinates[0].z, 0)))
+    print("Filename: {}".format(filename))
+    print("Poly bounds normal:  {} | Area: {}".format(poly.bounds, poly.area))
     print("Poly bounds extend:  {}".format(polyExtend.bounds))
     print("Poly bounds maximum: {}".format(polyMaximum.bounds))
     print("Poly bounds inset:   {}".format(polyInset.bounds))
@@ -320,10 +353,17 @@ def cutBuildingFromPointcloud(pointCloudReader, building, savePath, callback=uti
     writablePoints = writablePoints[selection]
     points = points[selection]
 
+    countFiltered = len(writablePoints)
+    print("Points count filtered: {}".format(countFiltered))
 
-    print("Points count filtered: {}".format(len(writablePoints)))
+    if(countFiltered == 0):
+        print("Found empty selection of points...")
+        return
 
-    pointCloudReader.writeFileToPath(savePath, points=writablePoints)
+    if(countFiltered == 62343):
+        print("====== Found duplicate building!")
+
+    pointCloudReader.writeFileToPath("{}/{}".format(saveFolder, filename), points=writablePoints)
 
 
 
