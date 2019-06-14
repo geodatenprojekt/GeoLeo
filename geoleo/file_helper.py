@@ -10,9 +10,14 @@ def get_all_paths_from_dir(path_to_dir):
     Keyword arguments:
     path_to_dir -- the path to the directoy, which do you want all file paths
     """
-    list_file_paths = []
-    for file_name in listdir(path_to_dir):
-        file_path = join(path_to_dir, file_name)
-        if isfile(file_path):
-            list_file_paths.append(file_path)
+    if path_to_dir is None:
+        return None
+    try:
+        list_file_paths = []
+        for file_name in listdir(path_to_dir):
+            file_path = join(path_to_dir, file_name)
+            if isfile(file_path):
+                list_file_paths.append(file_path)
+    except FileNotFoundError:
+        return None
     return list_file_paths
