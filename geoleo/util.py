@@ -79,3 +79,15 @@ def getBuildingArea(building):
         points.append((point.x, point.y, point.z))
     p = Polygon(points)
     return p.area
+
+def printBuildingPoints(building):
+    print("Building:")
+    for point in building.coordinates:
+        print("Coords: ({}, {}, {})".format(point.x, point.y, point.z))
+
+def concatPointcloudPaths(paths):
+    paths = [x for x in sorted(paths)]
+    return ";".join(paths)
+
+def getPointcloudsFromConcated(concatedString):
+    return concatedString.split(";")

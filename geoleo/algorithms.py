@@ -51,37 +51,71 @@ def getLasFilesForBuildings(buildings, filePathList, lasBoundsDict, maxBounds=No
         low = lasBoundsDict[lasFile][0]
         high = lasBoundsDict[lasFile][1]
 
-        # edgepoint1 = (low[0], low[1])
-        # edgepoint2 = (high[0], low[1])
-        # edgepoint3 = (high[0], high[1])
-        # edgepoint4 = (low[0], high[1])
-
-        # bounds = Polygon([edgepoint1, edgepoint2, edgepoint3, edgepoint4])
-        #print("Polygon: (({:.3f}, {:.3f}), ({:.3f}, {:.3f}), ({:.3f}, {:.3f}), ({:.3f}, {:.3f}))".format(edgepoint1[0], edgepoint1[1], edgepoint2[0], edgepoint2[1], edgepoint3[0], edgepoint3[1], edgepoint4[0], edgepoint4[1]))
-
-        for building in buildings:#(470958.666, 5754256.334, 131.36)
-            if(maxBounds != None and building.coordinates[0].x <= maxBounds[0] or building.coordinates[0].x >= maxBounds[2] or building.coordinates[0].y <= maxBounds[1] or building.coordinates[0].y >= maxBounds[3]):
-                continue
-
+        for building in buildingsFound.keys():#(470958.666, 5754256.334, 131.36)
             i = 0
             for buildingPoint in building.coordinates:
-                # point = Point(buildingPoint.x, buildingPoint.y)
-
-                # if(bounds.contains(point)):
                 if(buildingPoint.x > low[0] and buildingPoint.x < high[0] and buildingPoint.y > low[1] and buildingPoint.y < high[1]):
-                    #print("Pointcloud contains point [{} {}]".format(buildingPoint.x, buildingPoint.y))
                     buildingsFound[building][0][i] = True
                     if(not lasFile in buildingsFound[building][1]):
                         buildingsFound[building][1].append(lasFile)
                 else:
                     pass
-                    #print("Pointcloud does not contain point [{} {}]".format(buildingPoint.x, buildingPoint.y))
                 i += 1
 
         currentFileIndex += 1
         callback(currentFileIndex, count)
 
     return buildingsFound
+
+"""
+Returns the first found building with the according pointcloud files
+@param buildings  A list of buildings used for the search
+@param filePathList  A list of paths to .las/.laz files
+@param lasBoundsDict  A dictionary which holds the bounds for a given .las File
+@param maxBounds  Optional: The maximum bounds used to filter the buildings beforehands
+@return If found, a dictionary with ONE entry of the form {building: ((True, True, True, True, ...), (pathToFile1, pathToFile2, ...))}
+        If not found, None
+"""
+def getLasFilesForFirstBuilding(buildings, filePathList, lasBoundsDict, maxBounds=None):
+    buildingsFound = {}
+
+    for building in buildings:
+        if(maxBounds != None and building.coordinates[0].x <= maxBounds[0] or building.coordinates[0].x >= maxBounds[2] or building.coordinates[0].y <= maxBounds[1] or building.coordinates[0].y >= maxBounds[3]):
+            continue
+
+        points = []
+        paths = []
+
+        for p in building.coordinates:
+            points.append(False)
+
+        buildingsFound[building] = (points, paths)
+
+    for building in buildingsFound.keys():
+        for lasFile in filePathList:
+            low = lasBoundsDict[lasFile][0]
+            high = lasBoundsDict[lasFile][1]
+
+            i = 0
+            for buildingPoint in building.coordinates:
+                if(buildingPoint.x > low[0] and buildingPoint.x < high[0] and buildingPoint.y > low[1] and buildingPoint.y < high[1]):
+                    # print("Found point({})".format(i))
+                    buildingsFound[building][0][i] = True
+                    if(not lasFile in buildingsFound[building][1]):
+                        buildingsFound[building][1].append(lasFile)
+                else:
+                    pass
+                i += 1
+
+
+        if(not False in buildingsFound[building][0]): #One building was inside one or more pointclouds entirely
+            return {building: buildingsFound[building][1]}
+
+    return None
+
+"""
+Returns multiple buildings, for each cadaster one building, if one was found
+"""
 
 """
 Processes the list of .las files before any other algorithm is performed. Grabs globally lowest/highest coordinates and the locally lowest/highest coordinates for each building
@@ -93,8 +127,8 @@ def preProcessLasFiles(filePathList, callback=util.printProgressToConsole):
     firstFile = filePathList[0]
     firstFileReader = PointCloudFileIO(util.getPathToFile(firstFile))
 
-    low = firstFileReader.getLowestCoords()
-    high = firstFileReader.getHighestCoords()
+    low = firstFileReader.file.header.min
+    high = firstFileReader.file.header.max
 
     globalLowestX = low[0]
     globalLowestY = low[1]
@@ -109,8 +143,8 @@ def preProcessLasFiles(filePathList, callback=util.printProgressToConsole):
     for lasFile in filePathList:
         lasFileReader = PointCloudFileIO(util.getPathToFile(lasFile))
 
-        lowestCoords = lasFileReader.getLowestCoords()
-        highestCoords = lasFileReader.getHighestCoords()
+        lowestCoords = lasFileReader.file.header.min
+        highestCoords = lasFileReader.file.header.max
 
         if(lowestCoords[0] < globalLowestX):
             globalLowestX = lowestCoords[0]
@@ -162,18 +196,6 @@ def combineBuildingsToGroups(buildings):
     print("Found common points: {}".format(foundCommonPoints))
     print("Found building groups: {}".format(len(buildingGroups)))
 
-    # for index, buildingGroup in buildingGroups.items():
-    #     i = 0
-    #     for building in buildingGroup:
-    #         points = []
-    #         for point in building.coordinates:
-    #             points.append((point.x, point.y, point.z))
-    #         p = Polygon(points)
-    #         bounds = p.bounds
-    #         print("Before combine: Group({}): Polygon({}) with Area {} | Bounds Length: ({:.3f}, {:.3f})".format(index, i, p.area, bounds[2] - bounds[0], bounds[3] - bounds[1]))
-    #         i += 1
-    # print("======================\n\n")
-
     countGroups = 0
     combinedBuildings = []
     for index, buildingGroup in buildingGroups.items():
@@ -201,6 +223,24 @@ def combineBuildingsToGroups(buildings):
         i += 1
 
     return combinedBuildings
+
+"""
+Groups buildings that use the same pointcloud files
+@param lasFilesByBuilding  See the return value from "getLasFilesForBuildings"
+@return  A dictionary in this form: {"concattedPointsCloudPath1" : [building1, building2, building3], "concattedPointsCloudPath2" : [building4, building10], ...}
+"""
+def groupBuildingsByPointclouds(lasFilesByBuilding):
+    groups = {}
+    for building, buildingInfo in lasFilesByBuilding.items():
+        if(False in buildingInfo[0]):
+            continue
+        concattedPaths = util.concatPointcloudPaths(buildingInfo[1])
+        if(concattedPaths in groups):
+            groups[concattedPaths].append(building)
+        else:
+            groups[concattedPaths] = [building]
+    return groups
+
 
 
 """
@@ -302,16 +342,10 @@ Cuts out a pointcloud fitting a given building, saves it to a certain file
 @param insetExclude  (optional) Excludes the inside of the building to speed up the algorithm
 @param pointsEnclosingDistance  (optional) The distance for the points around the edges to be included recursively in the algorithm, default as 1 meter distance
 """
-def cutBuildingFromPointcloud(pointCloudReader, building, saveFolder, callback=util.printProgressToConsole, extendInclude=1.01, insetExclude=0.90, pointsEnclosingDistance=1, maximumBoundsExtend=1.25):
+def cutBuildingFromPointcloud(pointCloudReader, building, saveFolder, callback=util.printProgressToConsole, extendInclude=1.01, insetExclude=0.90, pointsEnclosingDistance=1, maximumBoundsExtend=1.1):
     # lowBounds = pointCloudReader.getLowestCoords()
     points = pointCloudReader.getPoints()
     writablePoints = pointCloudReader.file.points
-
-
-    # edgePoints = []
-    #
-    # for buildingPoint in building.coordinates:
-    #     edgePoints.append(Point(buildingPoint.x, buildingPoint.y))
 
     poly = Polygon([(point.x, point.y) for point in building.coordinates])
 
@@ -323,7 +357,7 @@ def cutBuildingFromPointcloud(pointCloudReader, building, saveFolder, callback=u
     maxX = maxBounds[2]
     maxY = maxBounds[3]
 
-    polyInset = affinity.scale(poly, insetExclude, insetExclude, insetExclude)
+    # polyInset = affinity.scale(poly, insetExclude, insetExclude, insetExclude) #not needed currently
 
     anchor = poly.centroid
 
@@ -364,12 +398,3 @@ def cutBuildingFromPointcloud(pointCloudReader, building, saveFolder, callback=u
         print("====== Found duplicate building!")
 
     pointCloudReader.writeFileToPath("{}/{}".format(saveFolder, filename), points=writablePoints)
-
-
-
-    # print("Poly: {}".format(poly))
-    # print("PolyExtend: {}".format(polyExtend))
-    # print("PolyInset: {}".format(polyInset))
-    # print("Points count regular: {}".format(countPoints))
-    # print("Points count extend:  {}".format(countExtendPoints))
-    # print("Points count inset:   {}".format(countInsetPoints))
