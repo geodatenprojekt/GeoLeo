@@ -15,10 +15,9 @@ class Cadaster:
     #def Move(self, x, y):
     #    self.offsetX = x
     #    self.offsetY = y
-
-    def __init__(self, file):
-        """Set buildings"""
-        self.buildings = cad_reader.get_buildings(file)
+    
+    def get_buildings(self, file_name):
+        self.buildings.append(cad_reader.get_buildings(file_name))
 
 class Coordinate:
     """Cordinate Class
