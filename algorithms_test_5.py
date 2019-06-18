@@ -3,7 +3,9 @@ from geoleo import cadaster
 from geoleo.pointcloud import PointCloudFileIO
 import geoleo.cadaster_reader as CadReader
 import geoleo.util as util
-import os
+import os, sys
+
+# print("Modules:\n{}".format("\n".join(sys.modules)))
 
 #==========GET LAS FILES & PRE PROCESS=====================
 filesList = list()
@@ -15,6 +17,7 @@ preProcessed = algorithms.preProcessLasFiles(filesList)
 
 cadasterPaths = list()
 [cadasterPaths.append("example_data/cadaster_examples/"+x) if x.endswith(".gml") else x for x in os.listdir("example_data/cadaster_examples")]
+
 
 i = 0
 max = len(cadasterPaths)
@@ -55,10 +58,20 @@ for cadasterPath in cadasterPaths:
     ret = algorithms.getLasFilesForBuildings(buildingsCombined, filesList, preProcessed[4], maxBounds=(preProcessed[0], preProcessed[1], preProcessed[2], preProcessed[3]))
 
     groupedByPointclouds = algorithms.groupBuildingsByPointclouds(ret)
-
-    for concattedPaths, group in groupedByPointclouds.items():
-        print("Paths:\n{}".format("\n\t".join(util.getPointcloudsFromConcated(concattedPaths))))
-        print("Buildings count: {}".format(len(group)))
+    buildingCount = 0
+    for concattedPath, group in groupedByPointclouds.items():
+        paths = util.getPointcloudsFromConcated(concattedPath)
+        if(paths == None):
+            print("Pointcloud files where too small, building ignored...")
+            continue
+        pcr = util.getMergedPointcloudForPaths(paths)
+        # print("Pointcloud path used: {}".format(pcr.path))
+        # print("Paths:\n{}".format("\n\t".join(util.getPointcloudsFromConcated(concattedPath))))
+        # print("Buildings count: {}".format(len(group)))
+        for building in group:
+            algorithms.cutBuildingFromPointcloud(pcr, building, "cut_with")
+            buildingCount += 1
+            print("Building Count: {}".format(buildingCount))
 
 
     #
