@@ -3,6 +3,15 @@ import subprocess
 import numpy as np
 
 """
+Prints the progress to the console
+    @param current  The current step
+    @param max  The maximum number of steps
+"""
+def printProgressToConsole(current, max, precedent=""):
+    print("{}{:.2f}%".format(precedent, (current / max) * 100))
+
+
+"""
 Returns the absolute path to the relative path that was specified
     @param file  The file which's path is requested. Can specify file in multiple subfolders
     @return  The absolute path to the file
@@ -12,7 +21,11 @@ def getPathToFile(file):
         joined = os.path.join(directory, file)
         return joined
 
-
+"""
+Returns the absolute path relative to the specified path and the project root
+    @param file  The file which's path is requested. Can specify file in multiple subfolders
+    @return  The absolute path to the file
+"""
 def getPathRelativeToRoot(file):
     rootDir = os.path.dirname(os.path.abspath(__file__))
     return os.path.join(rootDir, "../"+file)
@@ -53,3 +66,28 @@ def getPointsCloseToAnchor(anchor, numpyArr, distance=1000):
 
     #Return a boolean array where True means a point is within <distance> units of the anchor point
     return numpyArr < distance
+
+def getFileNameForBuilding(building):
+    anchor = building.coordinates[0]
+    return "{}_{}_{}.las".format(int(round(anchor.x, 0)), int(round(anchor.y, 0)), int(round(anchor.z, 0)))
+
+def getBuildingArea(building):
+    from shapely.geometry import Polygon
+    points = []
+    for point in building.coordinates:
+        # print("After merge: Coords: ({}, {}, {})".format(point.x, point.y, point.z))
+        points.append((point.x, point.y, point.z))
+    p = Polygon(points)
+    return p.area
+
+def printBuildingPoints(building):
+    print("Building:")
+    for point in building.coordinates:
+        print("Coords: ({}, {}, {})".format(point.x, point.y, point.z))
+
+def concatPointcloudPaths(paths):
+    paths = [x for x in sorted(paths)]
+    return ";".join(paths)
+
+def getPointcloudsFromConcated(concatedString):
+    return concatedString.split(";")
