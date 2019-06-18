@@ -1,8 +1,5 @@
-try:
-    import Tkinter as Tk # python 2
-except ModuleNotFoundError:
-    import tkinter as Tk # python 3
-
+import tkinter as Tk # python 3
+from tkinter import 
 
 class SidePanel():
     def __init__(self, root):

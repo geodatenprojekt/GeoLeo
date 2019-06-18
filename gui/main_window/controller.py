@@ -1,4 +1,3 @@
-
 import tkinter as Tk # python 3
 
 from model import Model
@@ -12,6 +11,6 @@ class Controller:
         self.view = View(self.root, self.model)
 
     def run(self):
-        self.root.title("Tkinter MVC example")
+        self.root.title("Pointcloud view")
         self.root.deiconify()
         self.root.mainloop()

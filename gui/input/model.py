@@ -2,6 +2,6 @@
 class Model:
 
     def __init__(self):
-        self.lasPath = None
-        self.gmlPath = None
+        self.las_path = None
+        self.gml_path = None
 
