@@ -17,7 +17,9 @@ class Cadaster:
     #    self.offsetY = y
     
     def get_buildings(self, file_name):
-        self.buildings.append(cad_reader.get_buildings(file_name))
+        blds = cad_reader.get_buildings(file_name)
+        for bld in blds:
+          self.buildings.append(bld)
 
 class Coordinate:
     """Cordinate Class
@@ -53,7 +55,8 @@ class Building:
         coordinates: All Coordinate objects from the building
     """
     coordinates = list()
-
-    def __init__(self, coordinates):
+    
+    def __init__(self, coordinates=None):
         """Set coordinates"""
-        self.coordinates = coordinates
+        if coordinates is not None:
+          self.coordinates = coordinates
