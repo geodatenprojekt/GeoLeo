@@ -2,7 +2,6 @@
 
 import xml.etree.ElementTree as ET
 from geoleo import cadaster
-from geoleo import file_helper
 
 CORE_NAME_SPACE = "{http://www.opengis.net/citygml/1.0}"
 BLDG_NAME_SPACE = "{http://www.opengis.net/citygml/building/1.0}"
@@ -60,7 +59,7 @@ def get_coordinates(points):
 
     return coordinates
 
-def get_buildings(directory):
+def get_buildings(file_name):
     """Get all Buildings from a CityGML file
     Args:
         directory: directory name with all CityGML filey
@@ -68,27 +67,24 @@ def get_buildings(directory):
         A List with all Building objects
     """
 
-    if directory is None:
+    if file_name is None:
         return None
-
-    file_names = file_helper.get_all_paths_from_dir(directory)
 
     buildings = list()
 
-    for file_name in file_names:
-        tree = ET.parse(file_name)
-        root = tree.getroot()
+    tree = ET.parse(file_name)
+    root = tree.getroot()
 
-        for xml_member in root.iterfind(XML_CITY_OBJECT_MEMBER):
-            elems = [XML_BUILDING, XML_LOD_1_SOLID, XML_SOLID, XML_EXTERIOR, XML_COMPOSITE_SURFACE, XML_SURFACE_MEMBER, XML_POLYGON, XML_EXTERIOR, XML_LINEAR_RING, XML_POS_LIST]
+    for xml_member in root.iterfind(XML_CITY_OBJECT_MEMBER):
+        elems = [XML_BUILDING, XML_LOD_1_SOLID, XML_SOLID, XML_EXTERIOR, XML_COMPOSITE_SURFACE, XML_SURFACE_MEMBER, XML_POLYGON, XML_EXTERIOR, XML_LINEAR_RING, XML_POS_LIST]
 
-            xml_elem = get_xml_element(elems, xml_member)
-            if xml_elem is not None:
-                all_points = xml_elem.text
-                points = all_points.split()
-                building = cadaster.Building(get_coordinates(points))
+        xml_elem = get_xml_element(elems, xml_member)
+        if xml_elem is not None:
+            all_points = xml_elem.text
+            points = all_points.split()
+            building = cadaster.Building(get_coordinates(points))
 
-                buildings.append(building)
+            buildings.append(building)
 
     return buildings
 
