@@ -7,8 +7,8 @@ Prints the progress to the console
     @param current  The current step
     @param max  The maximum number of steps
 """
-def printProgressToConsole(current, max):
-    print("{:.2f}%".format((current / max) * 100))
+def printProgressToConsole(current, max, precedent=""):
+    print("{}{:.2f}%".format(precedent, (current / max) * 100))
 
 
 """
@@ -66,3 +66,28 @@ def getPointsCloseToAnchor(anchor, numpyArr, distance=1000):
 
     #Return a boolean array where True means a point is within <distance> units of the anchor point
     return numpyArr < distance
+
+def getFileNameForBuilding(building):
+    anchor = building.coordinates[0]
+    return "{}_{}_{}.las".format(int(round(anchor.x, 0)), int(round(anchor.y, 0)), int(round(anchor.z, 0)))
+
+def getBuildingArea(building):
+    from shapely.geometry import Polygon
+    points = []
+    for point in building.coordinates:
+        # print("After merge: Coords: ({}, {}, {})".format(point.x, point.y, point.z))
+        points.append((point.x, point.y, point.z))
+    p = Polygon(points)
+    return p.area
+
+def printBuildingPoints(building):
+    print("Building:")
+    for point in building.coordinates:
+        print("Coords: ({}, {}, {})".format(point.x, point.y, point.z))
+
+def concatPointcloudPaths(paths):
+    paths = [x for x in sorted(paths)]
+    return ";".join(paths)
+
+def getPointcloudsFromConcated(concatedString):
+    return concatedString.split(";")

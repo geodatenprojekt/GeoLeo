@@ -15,10 +15,11 @@ class Cadaster:
     #def Move(self, x, y):
     #    self.offsetX = x
     #    self.offsetY = y
-
-    def __init__(self, file):
-        """Set buildings"""
-        self.buildings = cad_reader.get_buildings(file)
+    
+    def get_buildings(self, file_name):
+        blds = cad_reader.get_buildings(file_name)
+        for bld in blds:
+          self.buildings.append(bld)
 
 class Coordinate:
     """Cordinate Class
@@ -41,6 +42,12 @@ class Coordinate:
     def __eq__(self, other):
         return self.x == other.x and self.y == other.y and self.z == other.z
 
+    def __hash__(self):
+        return self.x.__hash__() + 7 * self.y.__hash__()
+
+    def __str__(self):
+        return "({:.3f}, {:.3f}, {:.3f})".format(self.x, self.y, self.z)
+
 class Building:
     """Building Class
 
@@ -48,7 +55,8 @@ class Building:
         coordinates: All Coordinate objects from the building
     """
     coordinates = list()
-
-    def __init__(self, coordinates):
+    
+    def __init__(self, coordinates=None):
         """Set coordinates"""
-        self.coordinates = coordinates
+        if coordinates is not None:
+          self.coordinates = coordinates
