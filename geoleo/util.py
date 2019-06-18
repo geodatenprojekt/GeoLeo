@@ -1,6 +1,8 @@
 import os
+import sys
 import subprocess
 import numpy as np
+import hashlib
 
 """
 Prints the progress to the console
@@ -91,3 +93,46 @@ def concatPointcloudPaths(paths):
 
 def getPointcloudsFromConcated(concatedString):
     return concatedString.split(";")
+
+def getMergedPointcloudForPaths(paths, pointcloudSizeLeeway=30000):
+    from geoleo.pointcloud import PointCloudFileIO
+
+    toRem = []
+    for i in range(len(paths)):
+        if(os.path.getsize(paths[i]) < pointcloudSizeLeeway):
+            toRem.append(paths[i])
+    for path in toRem:
+        paths.remove(path)
+
+    if(len(paths) == 0):
+        return None
+    elif(len(paths) == 1):
+        return PointCloudFileIO(paths[0])
+
+
+
+
+    saveFolder = getPathRelativeToRoot("tempClouds")
+    print("Save Folder: {} => Exists? {}".format(saveFolder, "True" if os.path.isdir(saveFolder) else "False"))
+    if(not os.path.isdir(saveFolder)):
+        os.makedirs(saveFolder)
+        print("Created temporary pointclouds folder")
+
+
+    paths = sorted(paths)
+    joined = "".join(paths)
+    # print("Joined paths: {}".format(joined))
+
+    hashCode = hashlib.sha1(joined.encode("utf-8")).hexdigest()
+    # print("HashCode of joined: {}".format(hashCode))
+
+    hashed = "{}.las".format(hashCode)
+    pathToPointcloud = os.path.join(saveFolder, hashed)
+    # print("Used paths:\n{}".format("\n".join(paths)))
+    print("Path to pointcloud: {} => Exists? {}".format(pathToPointcloud, "True" if os.path.isfile(pathToPointcloud) else "False"))
+
+    if(not os.path.isfile(pathToPointcloud)):
+        pcr = PointCloudFileIO(paths[0])
+        pcr.mergePointClouds(paths[1:], pathToPointcloud)
+
+    return PointCloudFileIO(pathToPointcloud)

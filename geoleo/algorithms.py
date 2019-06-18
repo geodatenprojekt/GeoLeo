@@ -342,7 +342,7 @@ Cuts out a pointcloud fitting a given building, saves it to a certain file
 @param insetExclude  (optional) Excludes the inside of the building to speed up the algorithm
 @param pointsEnclosingDistance  (optional) The distance for the points around the edges to be included recursively in the algorithm, default as 1 meter distance
 """
-def cutBuildingFromPointcloud(pointCloudReader, building, saveFolder, callback=util.printProgressToConsole, extendInclude=1.01, insetExclude=0.90, pointsEnclosingDistance=1, maximumBoundsExtend=1.1):
+def cutBuildingFromPointcloud(pointCloudReader, building, saveFolder, callback=util.printProgressToConsole, extendInclude=1.01, insetExclude=0.90, pointsEnclosingDistance=1, maximumBoundsExtend=1.05):
     # lowBounds = pointCloudReader.getLowestCoords()
     points = pointCloudReader.getPoints()
     writablePoints = pointCloudReader.file.points
@@ -366,7 +366,7 @@ def cutBuildingFromPointcloud(pointCloudReader, building, saveFolder, callback=u
     print("Poly bounds normal:  {} | Area: {}".format(poly.bounds, poly.area))
     print("Poly bounds extend:  {}".format(polyExtend.bounds))
     print("Poly bounds maximum: {}".format(polyMaximum.bounds))
-    print("Poly bounds inset:   {}".format(polyInset.bounds))
+    # print("Poly bounds inset:   {}".format(polyInset.bounds))
 
     print("Points count regular:  {}".format(len(writablePoints)))
 
