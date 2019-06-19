@@ -101,7 +101,14 @@ class PointCloudFileIO:
         @param newPath  The path to the newly merged pointcloud. Will overwrite existing files
     """
     def mergePointClouds(self, listPaths, newPath, callback=util.printProgressToConsole):
+        import psutil
+        import os
+
         pointsOwn = self.file.points
+
+        pointsOwnSize = util.inMB(pointsOwn.nbytes)
+        print("INIT pointsOwnSize: {:.2f}MB".format(pointsOwnSize))
+
         thisOffset = self.file.header.get_offset()
 
         count = len(listPaths)
@@ -122,7 +129,24 @@ class PointCloudFileIO:
         realCoords.append(np.append(self.file.Y, firstOtherReader.file.Y + round(translate[1])))
         realCoords.append(np.append(self.file.Z, firstOtherReader.file.Z + round(translate[2])))
 
+        xSize = util.inMB(realCoords[0].nbytes)
+        ySize = util.inMB(realCoords[1].nbytes)
+        zSize = util.inMB(realCoords[2].nbytes)
+
+        print("INIT realCoords x size: {:.2f}MB".format(xSize))
+        print("INIT realCoords y size: {:.2f}MB".format(ySize))
+        print("INIT realCoords z size: {:.2f}MB".format(zSize))
+
         pointsCombined = np.append(pointsOwn, firstOtherReader.file.points)
+
+        pointsCombinedSize = util.inMB(pointsCombined.nbytes)
+        print("INIT pointsCombinedSize: {:.2f}MB".format(pointsCombinedSize))
+
+        totalSize = pointsOwnSize + pointsCombinedSize + xSize + ySize + zSize
+        print("INIT totalSize: {:.2f}MB".format(totalSize))
+
+        realSize = util.inMB(psutil.Process(os.getpid()).memory_info().rss)
+        print("Process Memory used: {:.2f}MB".format(realSize))
 
         i += 1
         callback(i, count)
@@ -139,7 +163,21 @@ class PointCloudFileIO:
             realCoords[1] = np.append(realCoords[1], otherReader.file.Y + round(translate[1]))
             realCoords[2] = np.append(realCoords[2], otherReader.file.Z + round(translate[2]))
 
+            xSize = util.inMB(realCoords[0].nbytes)
+
+            print("realCoords size: {:.2f}MB".format(xSize * 3))
+
             pointsCombined = np.append(pointsCombined, otherReader.file.points)
+            # pointsCombined += otherReader.file.points
+
+            pointsCombinedSize = util.inMB(pointsCombined.nbytes)
+            print("pointsCombinedSize: {:.2f}MB".format(pointsCombinedSize))
+
+            totalSize = pointsCombinedSize + xSize + ySize + zSize
+            print("totalSize: {:.2f}MB".format(totalSize))
+
+            realSize = util.inMB(psutil.Process(os.getpid()).memory_info().rss)
+            print("Process Memory used: {:.2f}MB".format(realSize))
 
             i += 1
             callback(i, count)
