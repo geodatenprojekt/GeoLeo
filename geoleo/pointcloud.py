@@ -104,10 +104,13 @@ class PointCloudFileIO:
         import psutil
         import os
 
+        print("Process Memory used at start: {:.2f}MB".format(util.inMB(psutil.Process(os.getpid()).memory_info().rss)))
+        print("Available memory at start: {:.2f}MB | Used: {:.2f}MB | Percent: {}%".format(util.inMB(psutil.virtual_memory().available), util.inMB(psutil.virtual_memory().used), psutil.virtual_memory().percent))
+
         pointsOwn = self.file.points
 
         pointsOwnSize = util.inMB(pointsOwn.nbytes)
-        print("INIT pointsOwnSize: {:.2f}MB".format(pointsOwnSize))
+        # print("INIT pointsOwnSize: {:.2f}MB".format(pointsOwnSize))
 
         thisOffset = self.file.header.get_offset()
 
@@ -133,27 +136,30 @@ class PointCloudFileIO:
         ySize = util.inMB(realCoords[1].nbytes)
         zSize = util.inMB(realCoords[2].nbytes)
 
-        print("INIT realCoords x size: {:.2f}MB".format(xSize))
-        print("INIT realCoords y size: {:.2f}MB".format(ySize))
-        print("INIT realCoords z size: {:.2f}MB".format(zSize))
+        # pointsCombined = np.append(pointsOwn, firstOtherReader.file.points)
+        pcrList = [self, firstOtherReader]
+        pointsList = [pointsOwn, firstOtherReader.file.points]
 
-        pointsCombined = np.append(pointsOwn, firstOtherReader.file.points)
+        # pointsCombinedSize = util.inMB(pointsCombined.nbytes)
+        # print("INIT pointsCombinedSize: {:.2f}MB".format(pointsCombinedSize))
 
-        pointsCombinedSize = util.inMB(pointsCombined.nbytes)
-        print("INIT pointsCombinedSize: {:.2f}MB".format(pointsCombinedSize))
-
-        totalSize = pointsOwnSize + pointsCombinedSize + xSize + ySize + zSize
-        print("INIT totalSize: {:.2f}MB".format(totalSize))
-
-        realSize = util.inMB(psutil.Process(os.getpid()).memory_info().rss)
-        print("Process Memory used: {:.2f}MB".format(realSize))
+        print("Process Memory used after first merge: {:.2f}MB".format(util.inMB(psutil.Process(os.getpid()).memory_info().rss)))
+        print("Available memory after first merge: {:.2f}MB | Used: {:.2f}MB | Percent: {}%".format(util.inMB(psutil.virtual_memory().available), util.inMB(psutil.virtual_memory().used), psutil.virtual_memory().percent))
 
         i += 1
         callback(i, count)
 
+        currentIndex = 0
+        #combined = np.zeros((14000000, 12))
+
         for i in range(1, len(listPaths)):
             otherReader = PointCloudFileIO(listPaths[i])
             otherOffset = otherReader.file.header.get_offset()
+            otherPoints = otherReader.file.points
+
+            otherPointsSize = util.inMB(otherPoints.nbytes)
+            # print("otherPointsSize: {:.2f}MB".format(otherPointsSize))
+
             translate = [otherOffset[0] - thisOffset[0], otherOffset[1] - thisOffset[1], otherOffset[2] - thisOffset[2]]
             translate[0] *= 1000
             translate[1] *= 1000
@@ -163,21 +169,18 @@ class PointCloudFileIO:
             realCoords[1] = np.append(realCoords[1], otherReader.file.Y + round(translate[1]))
             realCoords[2] = np.append(realCoords[2], otherReader.file.Z + round(translate[2]))
 
-            xSize = util.inMB(realCoords[0].nbytes)
+            # pointsCombined = np.concatenate((pointsCombined, otherPoints))
+            # pointsCombined = np.append(pointsCombined, otherPoints)
+            pointsList.append(otherPoints)
+            pcrList.append(otherReader)
 
-            print("realCoords size: {:.2f}MB".format(xSize * 3))
+            # print("otherPointsLen: {} | PreviousCombinedLen: {} | ExpectedLen: {}".format(len(otherPoints), len(pointsCombined), len(pointsCombined) + len(otherPoints)))
 
-            pointsCombined = np.append(pointsCombined, otherReader.file.points)
-            # pointsCombined += otherReader.file.points
+            # pointsCombinedSize = util.inMB(pointsCombined.nbytes)
+            # print("pointsCombinedSize: {:.2f}MB".format(pointsCombinedSize))
 
-            pointsCombinedSize = util.inMB(pointsCombined.nbytes)
-            print("pointsCombinedSize: {:.2f}MB".format(pointsCombinedSize))
-
-            totalSize = pointsCombinedSize + xSize + ySize + zSize
-            print("totalSize: {:.2f}MB".format(totalSize))
-
-            realSize = util.inMB(psutil.Process(os.getpid()).memory_info().rss)
-            print("Process Memory used: {:.2f}MB".format(realSize))
+            print("Process Memory used in loop: {:.2f}MB".format(util.inMB(psutil.Process(os.getpid()).memory_info().rss)))
+            print("Available memory in loop: {:.2f}MB | Used: {:.2f}MB | Percent: {}%".format(util.inMB(psutil.virtual_memory().available), util.inMB(psutil.virtual_memory().used), psutil.virtual_memory().percent))
 
             i += 1
             callback(i, count)
@@ -189,6 +192,16 @@ class PointCloudFileIO:
         # maxX = np.amax(realCoords[0])
         # maxY = np.amax(realCoords[1])
         # maxZ = np.amax(realCoords[2])
+
+        print("Process Memory after loop: {:.2f}MB".format(util.inMB(psutil.Process(os.getpid()).memory_info().rss)))
+        print("Available memory after loop: {:.2f}MB | Used: {:.2f}MB | Percent: {}%".format(util.inMB(psutil.virtual_memory().available), util.inMB(psutil.virtual_memory().used), psutil.virtual_memory().percent))
+
+        pointsCombined = np.concatenate(pointsList)
+        print("PointsCombined: {}\nSize: {}".format(pointsCombined, util.inMB(pointsCombined.nbytes)))
+
+        # print("PointsCombined: Length: {}, first Half: {}".format(pointsCombined.shape, pointsCombined[0:6698927]))
+
+
 
         outFile = File(newPath, mode='w', header=self.file.header)
         outFile.points = pointsCombined

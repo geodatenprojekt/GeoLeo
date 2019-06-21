@@ -398,3 +398,95 @@ def cutBuildingFromPointcloud(pointCloudReader, building, saveFolder, callback=u
         print("====== Found duplicate building!")
 
     pointCloudReader.writeFileToPath("{}/{}".format(saveFolder, filename), points=writablePoints)
+
+def applyOffsetToPoints(points, offsetNeeded, currentOffset):
+    translate = [currentOffset[0] - offsetNeeded[0], currentOffset[1] - offsetNeeded[1], currentOffset[2] - offsetNeeded[2]]
+    translate[0] *= 1000
+    translate[1] *= 1000
+    translate[2] *= 1000
+
+    points += translate
+
+
+"""
+Cuts out a pointcloud fitting a given building, saves it to a certain file
+@param pointcloudReader  The pointcloud containing the building
+@param building  The building to be cut out
+@param savePath  The path for the new pointcloud to be saved to
+@param extendInclude  (optional) Extends the buildings bounds a little to avoid cutting the edges (too) narrow
+@param insetExclude  (optional) Excludes the inside of the building to speed up the algorithm
+@param pointsEnclosingDistance  (optional) The distance for the points around the edges to be included recursively in the algorithm, default as 1 meter distance
+"""
+def cutBuildingFromPointcloudAlternate(pointsAbsList, pointsWritableList, lasFileHeader, building, saveFolder, callback=util.printProgressToConsole, extendInclude=1.01, insetExclude=0.90, pointsEnclosingDistance=1, maximumBoundsExtend=1.05):
+    poly = Polygon([(point.x, point.y) for point in building.coordinates])
+
+    polyExtend = affinity.scale(poly, extendInclude, extendInclude, extendInclude)
+    polyMaximum = affinity.scale(poly, maximumBoundsExtend, maximumBoundsExtend, maximumBoundsExtend)
+    maxBounds = polyMaximum.bounds
+    minX = maxBounds[0]
+    minY = maxBounds[1]
+    maxX = maxBounds[2]
+    maxY = maxBounds[3]
+
+    # polyInset = affinity.scale(poly, insetExclude, insetExclude, insetExclude) #not needed currently
+
+    anchor = poly.centroid
+
+    filename = "{}_{}_{}.las".format(int(round(anchor.x, 0)), int(round(anchor.y, 0)), int(round(building.coordinates[0].z, 0)))
+    print("Filename: {}".format(filename))
+    print("Poly bounds normal:  {} | Area: {}".format(poly.bounds, poly.area))
+    print("Poly bounds extend:  {}".format(polyExtend.bounds))
+    print("Poly bounds maximum: {}".format(polyMaximum.bounds))
+
+
+    """
+    - Iterate through all pointsAbs, select by bounds, select by PIP
+    - Save cut pointsWritable in array as lists, save cut pointsAbs in array
+    - Combine points with np.concatenate((pointsWritable)) to combinedPoints
+    - Create new file with lasFileHeader as header, combinedPoints as points
+    - Set coordinates from saved pointsAbs array (maybe set_x_scaled() with abs, otherwise set_x() with relative)
+    """
+
+    #
+    # pcr = PointCloudFileIO(paths[0])
+    # thisOffset = self.file.header.get_offset()
+    #
+    # points = pcr.getPoints()
+    # writablePoints = pcr.file.points
+    #
+    # print("Points count regular:  {}".format(len(writablePoints)))
+    #
+    #
+    #
+    #
+    #
+    #
+    # # filteredWritablePoints = writablePoints[(points[:, 0] > maxBounds[0]) & (points[:, 1] > maxBounds[1]) & (points[:, 0] < maxBounds[2]) & (points[:, 1] < maxBounds[3])]
+    # selection = (points[:, 0] > minX) & (points[:, 1] > minY) & (points[:, 0] < maxX) & (points[:, 1] < maxY)
+    # writablePoints = writablePoints[selection]
+    # points = points[selection]
+    #
+    # selection = []
+    #
+    # for point in points:
+    #     shapelyPoint = Point(point[0], point[1])
+    #     if(polyExtend.contains(shapelyPoint)):
+    #         selection.append(True)
+    #     else:
+    #         selection.append(False)
+    #
+    # writablePoints = writablePoints[selection]
+    # points = points[selection]
+    #
+    # countFiltered = len(writablePoints)
+    # print("Points count filtered: {}".format(countFiltered))
+    #
+    # if(countFiltered == 0):
+    #     print("Found empty selection of points...")
+    #     return
+    #
+    # if(countFiltered == 62343):
+    #     print("====== Found duplicate building!")
+    #
+
+    pointCloudReader.writeFileToPath("{}/{}".format(saveFolder, filename), points=writablePoints)
