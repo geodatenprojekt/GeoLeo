@@ -87,4 +87,13 @@ Timer 'combineBuildingGroup': 1.362s
 Timer 'getLasFilesForBuildings': 1.602s
 Timer 'groupBuildingsByPointclouds': 1.802s
 Timer 'cutBuildingFromPointcloud': 3583.275s
+
+Time without PIP:
+Timer 'preProcessLasFiles': 1.060s
+Timer 'preProcessBuildingList': 86.851s
+Timer 'combineBuildingsToGroups': 0.086s
+Timer 'combineBuildingGroup': 1.300s
+Timer 'getLasFilesForBuildings': 1.261s
+Timer 'groupBuildingsByPointclouds': 1.197s
+Timer 'cutBuildingFromPointcloud': 215.203s     <--- That's a difference of 3.368,072‬
 """
