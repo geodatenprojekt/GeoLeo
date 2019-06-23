@@ -7,6 +7,7 @@ from geoleo import algorithms
 from geoleo import util
 import os
 import logging
+import platform
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -31,7 +32,7 @@ yOffset = cmd.getYOffset()
 
 #for testing
 if cadPath is None:
-    cadPath = "example_data/cadaster_examples_test"
+    cadPath = "example_data/cadaster_examples"
 if pcPath is None:
     pcPath = "example_data/pointcloud_examples"
 if outputPath is None:
@@ -41,6 +42,15 @@ if outputPath is None:
 las_files = list()
 logger.info("Reading LAS files..")
 las_files = file_helper.get_all_paths_from_dir(pcPath, ".las")
+if len(las_files) < 1:
+    laz_files = list()
+    laz_files = file_helper.get_all_paths_from_dir(pcPath, ".laz")
+    for laz_file in laz_files:  
+        if platform.system() == "Windows":
+            util.unzipLAZFile(laz_file)
+        else:
+            util.unzipLAZFile(laz_file, "lib/laszip")
+    las_files = file_helper.get_all_paths_from_dir(pcPath, ".las")
 
 #========= GET CADASTER ========================
 cad = cadaster.Cadaster()
