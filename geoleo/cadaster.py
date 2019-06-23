@@ -7,7 +7,7 @@ class Cadaster:
     Attributes:
         buildings: All Building objects from the cadaster
     """
-    buildings = list()
+    #buildings = list()
 
     #def Resize(self, scale):
     #    self.scale = scale
@@ -15,7 +15,10 @@ class Cadaster:
     #def Move(self, x, y):
     #    self.offsetX = x
     #    self.offsetY = y
-    
+
+    def __init__(self):
+        self.buildings = list()
+
     def get_buildings(self, file_name):
         blds = cad_reader.get_buildings(file_name)
         for bld in blds:
@@ -54,9 +57,11 @@ class Building:
     Attributes:
         coordinates: All Coordinate objects from the building
     """
-    coordinates = list()
-    
+    #coordinates = list()
+
     def __init__(self, coordinates=None):
         """Set coordinates"""
         if coordinates is not None:
-          self.coordinates = coordinates
+            self.coordinates = coordinates
+        else:
+            self.coordinates = list()

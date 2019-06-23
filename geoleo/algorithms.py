@@ -193,8 +193,8 @@ def combineBuildingsToGroups(buildings):
         if(not hadMatchingPoint):
             buildingGroups[i] = {building}
         i += 1
-    print("Found common points: {}".format(foundCommonPoints))
-    print("Found building groups: {}".format(len(buildingGroups)))
+    # print("Found common points: {}".format(foundCommonPoints))
+    # print("Found building groups: {}".format(len(buildingGroups)))
 
     countGroups = 0
     combinedBuildings = []
@@ -231,9 +231,14 @@ Groups buildings that use the same pointcloud files
 """
 def groupBuildingsByPointclouds(lasFilesByBuilding):
     groups = {}
+    maxPoints = 0
+    maxPointsActual = 0
     for building, buildingInfo in lasFilesByBuilding.items():
+        maxPoints = max(maxPoints, len(buildingInfo[0]))
+        maxPointsActual = max(maxPointsActual, len(building.coordinates))
         if(False in buildingInfo[0]):
             continue
+        # print("Found building that is completely inside our region!")
         concattedPaths = util.concatPointcloudPaths(buildingInfo[1])
         if(concattedPaths in groups):
             groups[concattedPaths].append(building)
@@ -287,7 +292,7 @@ def preProcessBuildingList(buildingList, pointLeeway=0.001, callback=util.printP
         i += 1
         callback(i, max)
 
-    print("Replaced a total of ({})/({}) points.".format(replacedPoints, notReplaced+replacedPoints))
+    # print("Replaced a total of ({})/({}) points.".format(replacedPoints, notReplaced+replacedPoints))
 
 
 buildingGroupCount = 0
@@ -315,7 +320,7 @@ def combineBuildingGroup(buildingGroup, pointLeeway=0.001):
     union = cascaded_union(polygons)
     building = cadaster.Building()
     if(union.boundary.is_closed == False):
-        print("Failed boundary!")
+        # print("Failed boundary!")
         buildings = []
         for boundary in union.boundary:
             building = cadaster.Building()
@@ -361,10 +366,10 @@ def cutBuildingFromPointcloud(pointsAbsList, writablePointsList, boundsList, las
     anchor = poly.centroid
 
     filename = "{}_{}_{}.las".format(int(round(anchor.x, 0)), int(round(anchor.y, 0)), int(round(building.coordinates[0].z, 0)))
-    print("Filename: {}".format(filename))
-    print("Poly bounds normal:  {} | Area: {}".format(poly.bounds, poly.area))
-    print("Poly bounds extend:  {}".format(polyExtend.bounds))
-    print("Poly bounds maximum: {}".format(polyMaximum.bounds))
+    # print("Filename: {}".format(filename))
+    # print("Poly bounds normal:  {} | Area: {}".format(poly.bounds, poly.area))
+    # print("Poly bounds extend:  {}".format(polyExtend.bounds))
+    # print("Poly bounds maximum: {}".format(polyMaximum.bounds))
 
     cutPoints = []
     cutWritableList = []
@@ -401,7 +406,7 @@ def cutBuildingFromPointcloud(pointsAbsList, writablePointsList, boundsList, las
     combinedPointsWritable = np.concatenate(cutWritableList)
 
     if(len(combinedPoints) == 0):
-        print("Found empty selection of points, skipping building...")
+        # print("Found empty selection of points, skipping building...")
         return
 
 
