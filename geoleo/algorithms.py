@@ -333,6 +333,7 @@ def combineBuildingGroup(buildingGroup, pointLeeway=0.001):
     buildingGroupCount += 1
     return building
 
+
 """
 Cuts out a pointcloud fitting a given building, saves it to a certain file
 @param pointcloudReader  The pointcloud containing the building
@@ -342,10 +343,8 @@ Cuts out a pointcloud fitting a given building, saves it to a certain file
 @param insetExclude  (optional) Excludes the inside of the building to speed up the algorithm
 @param pointsEnclosingDistance  (optional) The distance for the points around the edges to be included recursively in the algorithm, default as 1 meter distance
 """
-def cutBuildingFromPointcloud(pointCloudReader, building, saveFolder, callback=util.printProgressToConsole, extendInclude=1.01, insetExclude=0.90, pointsEnclosingDistance=1, maximumBoundsExtend=1.05):
-    # lowBounds = pointCloudReader.getLowestCoords()
-    points = pointCloudReader.getPoints()
-    writablePoints = pointCloudReader.file.points
+def cutBuildingFromPointcloud(pointsAbsList, writablePointsList, boundsList, lasFileHeader, building, saveFolder, callback=util.printProgressToConsole, extendInclude=1.01, insetExclude=0.90, pointsEnclosingDistance=1, maximumBoundsExtend=1.05):
+    from laspy.file import File
 
     poly = Polygon([(point.x, point.y) for point in building.coordinates])
 
@@ -366,35 +365,49 @@ def cutBuildingFromPointcloud(pointCloudReader, building, saveFolder, callback=u
     print("Poly bounds normal:  {} | Area: {}".format(poly.bounds, poly.area))
     print("Poly bounds extend:  {}".format(polyExtend.bounds))
     print("Poly bounds maximum: {}".format(polyMaximum.bounds))
-    # print("Poly bounds inset:   {}".format(polyInset.bounds))
 
-    print("Points count regular:  {}".format(len(writablePoints)))
+    cutPoints = []
+    cutWritableList = []
 
-    # filteredWritablePoints = writablePoints[(points[:, 0] > maxBounds[0]) & (points[:, 1] > maxBounds[1]) & (points[:, 0] < maxBounds[2]) & (points[:, 1] < maxBounds[3])]
-    selection = (points[:, 0] > minX) & (points[:, 1] > minY) & (points[:, 0] < maxX) & (points[:, 1] < maxY)
-    writablePoints = writablePoints[selection]
-    points = points[selection]
+    for i in range(len(pointsAbsList)):
+        pointsAbs = pointsAbsList[i]
+        writablePoints = writablePointsList[i]
+        bounds = boundsList[i]
+        pcMinX = bounds[0][0]
+        pcMinY = bounds[0][1]
+        pcMaxX = bounds[1][0]
+        pcMaxY = bounds[1][1]
 
-    selection = []
+        polyBounds = Polygon([(pcMinX, pcMinY), (pcMaxX, pcMinY), (pcMaxX, pcMaxY), (pcMinX, pcMaxY)])
+        pipPolygon = polyBounds.intersection(polyExtend)
 
-    for point in points:
-        shapelyPoint = Point(point[0], point[1])
-        if(polyExtend.contains(shapelyPoint)):
-            selection.append(True)
-        else:
-            selection.append(False)
+        selection = (pointsAbs[:, 0] > minX) & (pointsAbs[:, 1] > minY) & (pointsAbs[:, 0] < maxX) & (pointsAbs[:, 1] < maxY)
 
-    writablePoints = writablePoints[selection]
-    points = points[selection]
+        pointsAbs = pointsAbs[selection]
+        writablePoints = writablePoints[selection]
 
-    countFiltered = len(writablePoints)
-    print("Points count filtered: {}".format(countFiltered))
+        selection = []
+        for point in pointsAbs:
+            shapelyPoint = Point(point[0], point[1])
+            if(pipPolygon.contains(shapelyPoint)):
+                selection.append(True)
+            else:
+                selection.append(False)
 
-    if(countFiltered == 0):
-        print("Found empty selection of points...")
+        cutPoints.append(pointsAbs[selection])
+        cutWritableList.append(writablePoints[selection])
+
+    combinedPoints = np.concatenate(cutPoints)
+    combinedPointsWritable = np.concatenate(cutWritableList)
+
+    if(len(combinedPoints) == 0):
+        print("Found empty selection of points, skipping building...")
         return
 
-    if(countFiltered == 62343):
-        print("====== Found duplicate building!")
 
-    pointCloudReader.writeFileToPath("{}/{}".format(saveFolder, filename), points=writablePoints)
+    outFile = File("{}/{}".format(saveFolder, filename), mode='w', header=lasFileHeader)
+    outFile.points = combinedPointsWritable
+    outFile.set_x_scaled(combinedPoints[:, 0])
+    outFile.set_y_scaled(combinedPoints[:, 1])
+    outFile.set_z_scaled(combinedPoints[:, 2])
+    outFile.close()
