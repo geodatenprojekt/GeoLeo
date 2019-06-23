@@ -174,6 +174,11 @@ def getTimerResult():
     global timerDict
     return timerDict
 
+def printTimerResult():
+    global timerDict
+    for timerStr, seconds in timerDict.items():
+        print("Timer '{}': {:.3f}s".format(timerStr, seconds))
+
 # startTimer("FirstAction")
 # time.sleep(2)
 # startTimer("SecondAction")

@@ -2,11 +2,13 @@ from geoleo.pointcloud import PointCloudFileIO
 from geoleo import cadaster
 import geoleo.cadaster_reader as CadReader
 import geoleo.util as util
+from laspy.file import File
 from shapely import affinity
 from shapely.geometry import Point, Polygon
 from shapely.ops import cascaded_union
 import numpy as np
 import os
+import inspect
 
 """
 Shifts all buildings by a given offset
@@ -14,6 +16,7 @@ Shifts all buildings by a given offset
 @param offset  The offset by which the buildings should be shifted
 """
 def shiftCadasterCoordinates(buildings, offset):
+    util.startTimer(inspect.stack()[0][3])
     for building in buildings:
         for coordinate in building.coordinates:
             coordinate.x += offset[0]
@@ -28,6 +31,7 @@ Filters all of the PointClouds and searches for the buildings inside them
 @return A dictionary of the form {building1: ((True, True, True, True, ...), (pathToFile1, pathToFile2, ...)), building2: [...]}
 """
 def getLasFilesForBuildings(buildings, filePathList, lasBoundsDict, maxBounds=None, callback=util.printProgressToConsole):
+    util.startTimer(inspect.stack()[0][3])
     buildingsFound = {}
 
     count = len(filePathList)
@@ -77,6 +81,7 @@ Returns the first found building with the according pointcloud files
         If not found, None
 """
 def getLasFilesForFirstBuilding(buildings, filePathList, lasBoundsDict, maxBounds=None):
+    util.startTimer(inspect.stack()[0][3])
     buildingsFound = {}
 
     for building in buildings:
@@ -124,6 +129,7 @@ Tracks
 @return An array in the form of [globalLowestX, globalLowestY, globalHighestX, globalHighestY, {lasFile1: (lowestCoords, highestCoords), lasFile2: (...), ...}]
 """
 def preProcessLasFiles(filePathList, callback=util.printProgressToConsole):
+    util.startTimer(inspect.stack()[0][3])
     firstFile = filePathList[0]
     firstFileReader = PointCloudFileIO(util.getPathToFile(firstFile))
 
@@ -168,6 +174,7 @@ Combine buildings inside a cadaster to new buildings (so that they represent act
 @return  A list of all PHYSICAL buildings
 """
 def combineBuildingsToGroups(buildings):
+    util.startTimer(inspect.stack()[0][3])
     uniquePoints = {}
     buildingGroups = {}
     i = 0
@@ -230,6 +237,7 @@ Groups buildings that use the same pointcloud files
 @return  A dictionary in this form: {"concattedPointsCloudPath1" : [building1, building2, building3], "concattedPointsCloudPath2" : [building4, building10], ...}
 """
 def groupBuildingsByPointclouds(lasFilesByBuilding):
+    util.startTimer(inspect.stack()[0][3])
     groups = {}
     for building, buildingInfo in lasFilesByBuilding.items():
         if(False in buildingInfo[0]):
@@ -249,6 +257,7 @@ Pre process a list of buildings
 5755390.323
 """
 def preProcessBuildingList(buildingList, pointLeeway=0.001, callback=util.printProgressToConsole):
+    util.startTimer(inspect.stack()[0][3])
     uniquePoints = {}
     buildingGroups = []
     i = 0
@@ -295,6 +304,7 @@ buildingGroupCount = 0
 Combines one group of buildings to a total building
 """
 def combineBuildingGroup(buildingGroup, pointLeeway=0.001):
+    util.startTimer(inspect.stack()[0][3])
     global buildingGroupCount
     polygons = []
     i = 0
@@ -344,7 +354,7 @@ Cuts out a pointcloud fitting a given building, saves it to a certain file
 @param pointsEnclosingDistance  (optional) The distance for the points around the edges to be included recursively in the algorithm, default as 1 meter distance
 """
 def cutBuildingFromPointcloud(pointsAbsList, writablePointsList, boundsList, lasFileHeader, building, saveFolder, callback=util.printProgressToConsole, extendInclude=1.01, insetExclude=0.90, pointsEnclosingDistance=1, maximumBoundsExtend=1.05):
-    from laspy.file import File
+    util.startTimer(inspect.stack()[0][3])
 
     poly = Polygon([(point.x, point.y) for point in building.coordinates])
 

@@ -72,3 +72,19 @@ for cadasterPath in cadasterPaths:
             algorithms.cutBuildingFromPointcloud(pointsList, pointsWritableList, boundsList, pcrs[0].file.header, building, "cut_with")
             buildingCount += 1
             print("Building Count: {}".format(buildingCount))
+
+print("Cut a total of {} buildings.".format(buildingCount))
+print("Runtime specifics:")
+util.printTimerResult()
+
+
+"""
+Last test:
+Timer 'preProcessLasFiles': 0.784s
+Timer 'preProcessBuildingList': 88.786s
+Timer 'combineBuildingsToGroups': 0.085s
+Timer 'combineBuildingGroup': 1.362s
+Timer 'getLasFilesForBuildings': 1.602s
+Timer 'groupBuildingsByPointclouds': 1.802s
+Timer 'cutBuildingFromPointcloud': 3583.275s
+"""
