@@ -1,4 +1,3 @@
-
 # An opengl frame for pyopengl-tkinter based on ctypes (no togl compilation)
 #
 # Collected together by Jon Wright, Jan 2018.
@@ -496,6 +495,7 @@ class Opengl(RawOpengl):
     def initgl(self):
         self.basic_lighting()
 
+
     def set_background(self, r, g, b):
         """Change the background colour of the widget."""
 
@@ -668,7 +668,6 @@ class Opengl(RawOpengl):
         GL.glMatrixMode(GL.GL_PROJECTION)
         GL.glLoadIdentity()
         GLU.gluPerspective(self.fovy, float(w)/float(h), self.near, self.far)
-
         if 0:
             # Now translate the scene origin away from the world origin
             glMatrixMode(GL_MODELVIEW)
@@ -704,7 +703,7 @@ class Opengl(RawOpengl):
 
         self.activate()
         if not self.initialised:
-            self.basic_lighting()
+            #self.basic_lighting()
             self.initialised = 1
         self.tkRedraw()
 
@@ -713,4 +712,3 @@ class Opengl(RawOpengl):
         """Turn the current scene into PostScript via the feedback buffer."""
 
         self.activate()
-
