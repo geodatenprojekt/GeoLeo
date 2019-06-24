@@ -2,7 +2,7 @@ from laspy.file import File
 from laspy.header import Header
 import numpy as np
 from geoleo import util
-
+import platform
 """
 Class PointCloudFileIO encapsulates read/write access to .laz/.las files
 The PointClouds can be read from either format, however .laz files will be
@@ -34,7 +34,10 @@ class PointCloudFileIO:
     """
     def readFile(self):
         if(self.path.endswith(".laz")): #Further unpacking from LAZ to LAS needed
-            util.unzipLAZFile(self.path)
+            if platform.system() == "Windows":
+                util.unzipLAZFile(self.path)
+            else:
+                util.unzipLAZFile(self.path, "lib/laszip")
             self.path = ".laz".join(self.path.split(".laz")[0:-1]) + ".las"
 
         #header = Header(point_format=2)
