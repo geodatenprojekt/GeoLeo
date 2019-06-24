@@ -34,14 +34,6 @@ outputPath = cmd.getOutputPath()
 xOffset = cmd.getXOffset()
 yOffset = cmd.getYOffset()
 
-#for testing
-if cadPath is None:
-    cadPath = "example_data/cadaster_examples"
-if pcPath is None:
-    pcPath = "example_data/pointcloud_examples"
-if outputPath is None:
-    outputPath = "output"
-
 if(not os.path.isdir(outputPath)):
     os.makedirs(outputPath)
     logger.info("Created output directory")
@@ -152,3 +144,5 @@ for groupedByPointclouds in groupedByPointcloudsAll:
             algorithms.cutBuildingFromPointcloud(pointsList, pointsWriteableList, boundsList, pcrs[0].file.header, building, outputPath)
             buildingCount += 1
             logger.info("Building Cut Progress: {:.2f}%".format((buildingCount / totalAfterCombine) * 100))
+
+logger.info("Cut Progress finished")
