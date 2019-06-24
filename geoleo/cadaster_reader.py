@@ -1,9 +1,5 @@
-<<<<<<< HEAD
-"""Functions for reading the CityGML files"""
-=======
 import xml.etree.ElementTree as ET
 from geoleo import cadaster
->>>>>>> origin/dev_algorithm
 
 import xml.etree.ElementTree as ET
 from geoleo import cadaster
