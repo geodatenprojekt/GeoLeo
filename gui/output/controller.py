@@ -1,7 +1,7 @@
 import tkinter as Tk # python 3
 
-from model import Model
-from view import View
+from gui.output.model import Model
+from gui.output.view import View
 
 
 class Controller:

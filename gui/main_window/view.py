@@ -2,13 +2,13 @@
 from tkinter import filedialog
 import tkinter as Tk
 
-from side_panel import SidePanel
-from openglframe import AppOgl
+from gui.main_window.side_panel import SidePanel
+from gui.main_window.openglframe import AppOgl
 
 from OpenGL import GL, GLU
-from pyopengltk import OpenGLFrame
+from gui.main_window.pyopengltk import OpenGLFrame
 
-from side_panel import SidePanel
+from gui.main_window.side_panel import SidePanel
 
 
 class View:
@@ -33,23 +33,53 @@ class View:
 
         self.sidepanel.cont_but.config(command=lambda: self.cont())
 
-    def move_left():
-        pass
+    def getFloatFromEntry(self, entr):
+        try:
+            return float(entr.get())
+        except:
+            pass
 
-    def move_right():
-        pass
+    def move_left(self):
+        try:
+            self.model.moveInXDirection(self.getFloatFromEntry(self.sidepanel.step_entry)*(-1.0))
+            print("X ",self.model.moveX)
+        except:
+            pass
 
-    def move_up():
-        pass
+    def move_right(self):
+        try:
+            self.model.moveInXDirection(self.getFloatFromEntry(self.sidepanel.step_entry))
+            print("X ",self.model.moveX)
+        except:
+            pass
 
-    def move_down():
-        pass
+    def move_up(self):
+        try:
+            self.model.moveInYDirection(self.getFloatFromEntry(self.sidepanel.step_entry)*(-1.0))
+            print("Y ", self.model.moveY)
+        except:
+            pass
 
-    def scale_up():
-        pass
+    def move_down(self):
+        try:
+            self.model.moveInYDirection(self.getFloatFromEntry(self.sidepanel.step_entry))
+            print("Y ", self.model.moveY)
+        except:
+            pass
+
+    def scale_up(self):
+        try:
+            self.model.scaleSize(self.getFloatFromEntry(self.sidepanel.entry))
+            print("Scale ",self.model.scaleFactor)
+        except:
+            pass
     
-    def scale_down():
-        pass
+    def scale_down(self):
+        try:
+            self.model.scaleSize(self.getFloatFromEntry(self.sidepanel.entry))
+            print("Scale ",self.model.scaleFactor)
+        except:
+            pass
 
-    def cont(self, event):
+    def cont(self):
         pass

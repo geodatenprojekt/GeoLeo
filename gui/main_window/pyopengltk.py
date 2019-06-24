@@ -695,5 +695,4 @@ class Opengl(RawOpengl):
 
     def tkPrint(self, file):
         """Turn the current scene into PostScript via the feedback buffer."""
-
         self.activate()

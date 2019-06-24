@@ -1,7 +1,8 @@
 from laspy.file import File
+from laspy.header import Header
 import numpy as np
 from geoleo import util
-
+import platform
 """
 Class PointCloudFileIO encapsulates read/write access to .laz/.las files
 The PointClouds can be read from either format, however .laz files will be
@@ -17,6 +18,7 @@ class PointCloudFileIO:
     def __init__(self, path, read=True):
         self.path = path
         self.file = None
+        self.points = None
 
         if(read):
             self.readFile()
@@ -32,9 +34,14 @@ class PointCloudFileIO:
     """
     def readFile(self):
         if(self.path.endswith(".laz")): #Further unpacking from LAZ to LAS needed
-            util.unzipLAZFile(self.path)
+            if platform.system() == "Windows":
+                util.unzipLAZFile(self.path)
+            else:
+                util.unzipLAZFile(self.path, "lib/laszip")
             self.path = ".laz".join(self.path.split(".laz")[0:-1]) + ".las"
 
+        #header = Header(point_format=2)
+        # self.file = File(self.path, mode='r', header=header)
         self.file = File(self.path, mode='r')
 
 
@@ -44,13 +51,18 @@ class PointCloudFileIO:
     @param path  The path to the new file
     @param keepPoints  An array of booleans to determine which points are saved. Needs to have the same length as the points array
     """
-    def writeFileToPath(self, path, keepPoints=None):
+    def writeFileToPath(self, path, points=None, keepPoints=None):
         if(self.file != None):
+            try:
+                len(points)
+            except TypeError:
+                points = self.file.points
+
             outFile = File(path, mode='w', header=self.file.header)
             if(keepPoints == None):
-                outFile.points = self.file.points
+                outFile.points = points
             else:
-                outFile.points = self.file.points[keepPoints]
+                outFile.points = points[keepPoints]
             outFile.close()
 
 
@@ -74,12 +86,83 @@ class PointCloudFileIO:
             else:
                 return np.vstack((self.file.X, self.file.Y, self.file.Z, self.file.red, self.file.green, self.file.blue)).transpose()
 
+    def getLowestCoords(self, absolute=True):
+        return self.file.header.min
+
+    def getHighestCoords(self, absolute=True):
+        return self.file.header.max
 
     def getPath(self):
         return self.path
 
     def getFile(self):
         return self.file
+
+    """
+    Merges all given pointcloud files into a new pointcloud file
+        @param listPaths  A list of paths to .las files to be merged
+        @param newPath  The path to the newly merged pointcloud. Will overwrite existing files
+    """
+    def mergePointClouds(self, listPaths, newPath, callback=util.printProgressToConsole):
+        pointsOwn = self.file.points
+        thisOffset = self.file.header.get_offset()
+
+        count = len(listPaths)
+        i = 0
+
+        callback(i, count)
+
+        firstOtherReader = PointCloudFileIO(listPaths[0])
+        otherOffset = firstOtherReader.file.header.get_offset()
+
+        translate = [otherOffset[0] - thisOffset[0], otherOffset[1] - thisOffset[1], otherOffset[2] - thisOffset[2]]
+        translate[0] *= 1000
+        translate[1] *= 1000
+        translate[2] *= 1000
+
+        realCoords = []
+        realCoords.append(np.append(self.file.X, firstOtherReader.file.X + round(translate[0])))
+        realCoords.append(np.append(self.file.Y, firstOtherReader.file.Y + round(translate[1])))
+        realCoords.append(np.append(self.file.Z, firstOtherReader.file.Z + round(translate[2])))
+
+        pointsCombined = np.append(pointsOwn, firstOtherReader.file.points)
+
+        i += 1
+        callback(i, count)
+
+        for i in range(1, len(listPaths)):
+            otherReader = PointCloudFileIO(listPaths[i])
+            otherOffset = otherReader.file.header.get_offset()
+            translate = [otherOffset[0] - thisOffset[0], otherOffset[1] - thisOffset[1], otherOffset[2] - thisOffset[2]]
+            translate[0] *= 1000
+            translate[1] *= 1000
+            translate[2] *= 1000
+
+            realCoords[0] = np.append(realCoords[0], otherReader.file.X + round(translate[0]))
+            realCoords[1] = np.append(realCoords[1], otherReader.file.Y + round(translate[1]))
+            realCoords[2] = np.append(realCoords[2], otherReader.file.Z + round(translate[2]))
+
+            pointsCombined = np.append(pointsCombined, otherReader.file.points)
+
+            i += 1
+            callback(i, count)
+
+        # minX = np.amin(realCoords[0])
+        # minY = np.amin(realCoords[1])
+        # minZ = np.amin(realCoords[2])
+        #
+        # maxX = np.amax(realCoords[0])
+        # maxY = np.amax(realCoords[1])
+        # maxZ = np.amax(realCoords[2])
+
+        outFile = File(newPath, mode='w', header=self.file.header)
+        outFile.points = pointsCombined
+        outFile.X = realCoords[0]
+        outFile.Y = realCoords[1]
+        outFile.Z = realCoords[2]
+        # outFile.header.set_min([minX, minY, minZ])
+        # outFile.header.set_max([maxX, maxY, maxZ])
+        outFile.close()
 
 if __name__ == "__main__":
     pcReader = PointCloudFileIO(util.getPathToFile("../backend/example_data/47078_575419_0011.laz"))

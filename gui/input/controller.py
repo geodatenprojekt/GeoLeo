@@ -1,8 +1,8 @@
 
 import tkinter as Tk # python 3
 
-from model import Model
-from view import View
+from gui.input.model import Model
+from gui.input.view import View
 
 
 class Controller:
@@ -12,6 +12,6 @@ class Controller:
         self.view = View(self.root, self.model)
 
     def run(self):
-        self.root.title("Tkinter MVC example")
+        self.root.title("Input Selection")
         self.root.deiconify()
         self.root.mainloop()
