@@ -30,12 +30,8 @@ def get_coordinates(points):
     Returns:
         A Building object with all coordinates
     """
-<<<<<<< HEAD
-    coordinates = list()
-=======
     building = cadaster.Building()
     building.coordinates = list()
->>>>>>> origin/dev_algorithm
 
     #for counter in range(0, len(points)):
     for counter in enumerate(points):
@@ -48,13 +44,8 @@ def get_coordinates(points):
         elif coord == 0:
             _z = float(points[counter])
 
-<<<<<<< HEAD
-            coord = cadaster.Coordinate(_x, _y, _z)
-            coordinates.append(coord)
-=======
             coord = cadaster.Coordinate(x, y, z)
             building.coordinates.append(coord)
->>>>>>> origin/dev_algorithm
 
     return coordinates
 
