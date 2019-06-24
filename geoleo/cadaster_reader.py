@@ -75,22 +75,6 @@ def get_buildings(directory):
 
     buildings = list()
 
-<<<<<<< HEAD
-    for file_name in file_names:
-        tree = ET.parse(file_name)
-        root = tree.getroot()
-
-        for xml_member in root.iterfind(XML_CITY_OBJECT_MEMBER):
-            elems = [XML_BUILDING, XML_LOD_1_SOLID, XML_SOLID, XML_EXTERIOR, XML_COMPOSITE_SURFACE, XML_SURFACE_MEMBER, XML_POLYGON, XML_EXTERIOR, XML_LINEAR_RING, XML_POS_LIST]
-
-            xml_elem = get_xml_element(elems, xml_member)
-            if xml_elem is not None:
-                all_points = xml_elem.text
-                points = all_points.split()
-                building = cadaster.Building(get_coordinates(points))
-
-                buildings.append(building)
-=======
     for xml_member in root.iterfind( core_nameSpace + "cityObjectMember"):
         elems = [ bldg_nameSpace + "Building",  bldg_nameSpace + "lod1Solid", gml_nameSpace + "Solid", gml_nameSpace + "exterior", gml_nameSpace + "CompositeSurface", gml_nameSpace + "surfaceMember", gml_nameSpace + 'Polygon', gml_nameSpace + 'exterior', gml_nameSpace + 'LinearRing', gml_nameSpace + 'posList' ]
 
@@ -101,7 +85,6 @@ def get_buildings(directory):
             points = allPoints.split()
             building = getBuilding(points)
             buildings.append(building)
->>>>>>> origin/dev_algorithm
 
     return buildings
 

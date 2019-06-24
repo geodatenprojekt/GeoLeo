@@ -53,14 +53,6 @@ class Building:
     Attributes:
         coordinates: All Coordinate objects from the building
     """
-<<<<<<< HEAD
-    coordinates = list()
-
-    def __init__(self, coordinates):
-        """Set coordinates"""
-        self.coordinates = coordinates
-=======
 
     def __init__(self):
         self.coordinates = list()
->>>>>>> origin/dev_algorithm
