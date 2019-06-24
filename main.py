@@ -11,7 +11,7 @@ import logging
 import platform
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
@@ -60,35 +60,30 @@ if len(las_files) < 1:
             util.unzipLAZFile(laz_file, "lib/laszip")
     las_files = file_helper.get_all_paths_from_dir(pcPath, ".las")
 
+if len(las_files) < 1:
+  logger.error("No LAS files found")
+  exit()
+
 #========= GET CADASTER ========================
 cads_list = []
-cad_files = file_helper.get_all_paths_from_dir(cadPath, ".gml")
 logger.info("Reading GML files..")
-#i = 0
-#for file_name in file_names:
-#    if i < 6:
-#        cad.get_buildings(file_name)
-#    i += 1
+cad_files = file_helper.get_all_paths_from_dir(cadPath, ".gml")
+if len(cad_files) < 1:
+  logger.error("No GML files found")
+  exit()
 totalBuildings = 0
+
 for cad_file in cad_files:
     cad = cadaster.Cadaster()
     cad.get_buildings(cad_file)
     totalBuildings += len(cad.buildings)
     cads_list.append(cad)
-# cad.get_buildings(cad_files[0])
-#cad.get_buildings(cad_files[1])
-#cad.get_buildings(cad_files[2])
-#cad.get_buildings(cad_files[3])
-#cad.get_buildings(cad_files[4])
-#cad.get_buildings(cad_files[5])
 
 logger.debug("Found buildings: {}".format(totalBuildings))
 
 #========= PRE PROCESS ======================================
 logger.info("Pre processing LAS files..")
 preProcessed = algorithms.preProcessLasFiles(las_files, callback=logState)
-
-
 
 logger.info("Pre processing GML files..")
 max = len(cads_list)
@@ -98,8 +93,6 @@ for cad in cads_list:
     algorithms.preProcessBuildingList(cad.buildings, pointLeeway=0.1, callback=dontPrint)
     current += 1
     logger.info("Pre processing GML files.. {:.2f}%".format((current / max) * 100))
-
-
 
 logger.info("Combining buildings parts to whole buildings..")
 buildingsCombinedAll = []
@@ -129,33 +122,9 @@ for buildingsCombined in buildingsCombinedAll:
     current += 1
     logger.info("Getting LAS files for buildings.. {:.2f}%".format((current / max) * 100))
 
-# logger.debug("==========CHECK LISTS===========")
-# if len(las_files) < 1:
-#     logger.debug("LAS_FILES EMPTY")
-# else:
-#     logger.debug("LAS_FILES[0]: {}".format(las_files[0]))
-# if len(cad_files) < 1:
-#     logger.debug("CAD_FILES EMPTY")
-# else:
-#     logger.debug("CAD_FILES[0]: {}".format(cad_files[0]))
-# if len(buildingsCombined) < 1:
-#     logger.debug("BUILDINGSCOMBINED EMPTY")
-# else:
-#     logger.debug("BUILDINGSCOMBINED[0].COORDINATES[0].X: {}".format(buildingsCombined[0].coordinates[0].x))
-# if len(preProcessed) < 1:
-#     logger.debug("PREPROCESSED EMPTY")
-# else:
-#     logger.debug("PREPROCESSED[0]: {}".format(preProcessed[0]))
-# if len(ret) < 1:
-#     logger.debug("RET EMPTY")
-# else:
-#     pass
-#     logger.debug("RET[0]: {}".format(ret[0])) # Auf Dictionaries kann man nicht mit Indizes zugreifen
-# if len(groupedByPointclouds) < 1:
-#     logger.debug("GROUPEDBYPOINTCLOUDS EMPTY")
-# else:
-#     pass
-#     logger.debug("GROUPEDBYPOINTCLOUDS[0]: {}".format(groupedByPointclouds[0])) # Auf Dictionaries kann man nicht mit Indizes zugreifen
+if len(groupedByPointcloudsAll) < 1:
+  logger.error("No building found in pointclouds")
+  exit()
 
 buildingCount = 0
 for groupedByPointclouds in groupedByPointcloudsAll:
