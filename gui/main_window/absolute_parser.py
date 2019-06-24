@@ -24,6 +24,8 @@ class AbsParser:
         y = int(y * 1000)
         z = int(z * 1000)
 
+        #z = 0
+
         list.append(x)
         list.append(y)
         list.append(z)
@@ -44,7 +46,6 @@ class AbsParser:
                 for y in range(0, 3):
                     curr = list[x][y]
                     curr -= self.min[y]
-                    #curr -= self.mid[y]
                     curr = int(curr * 1000)
                     inner.append(curr)
                 for y in range(3, 6):

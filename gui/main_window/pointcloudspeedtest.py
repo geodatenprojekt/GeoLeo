@@ -10,24 +10,8 @@ from gui.main_window.absolute_parser import AbsParser
 class AppOgl(Opengl):
     initialised = 0
 
-    def draw_cordsystem(self):
-        glBegin(GL_LINES)
-        glColor3f(1, 0, 0)
-        glVertex3fv((0, 0, 0))
-        glVertex3fv((1, 0, 0))
-
-        glColor3f(0, 1, 0)
-        glVertex3fv((0, 0, 0))
-        glVertex3fv((0, 1, 0))
-
-        glColor3f(0, 0, 1)
-        glVertex3fv((0, 0, 0))
-        glVertex3fv((0, 0, 1))
-        glEnd()
-
     def init_cadaster(self):
         cad = cadaster.Cadaster(util.getPathRelativeToRoot("/example_data/cadaster_examples/"))
-
 
         self.cadlist = glGenLists(1)
         glNewList(self.cadlist, GL_COMPILE)
@@ -98,9 +82,9 @@ class AppOgl(Opengl):
 
         glPointSize(2)
 
-        self.fovy = 40.0
+        self.fovy = 60.0
         self.near = 0.1
-        self.far = 999999.0
+        self.far = 999999999.0
 
         self.init_pointcloud()
         self.init_cadaster()
