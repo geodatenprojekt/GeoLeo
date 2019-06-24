@@ -2,13 +2,13 @@
 from tkinter import filedialog
 import tkinter as Tk
 
-from side_panel import SidePanel
-from openglframe import AppOgl
+from gui.main_window.side_panel import SidePanel
+from gui.main_window.openglframe import AppOgl
 
 from OpenGL import GL, GLU
-from pyopengltk import OpenGLFrame
+from gui.main_window.pyopengltk import OpenGLFrame
 
-from side_panel import SidePanel
+from gui.main_window.side_panel import SidePanel
 
 
 class View:
@@ -33,22 +33,22 @@ class View:
 
         self.sidepanel.cont_but.config(command=lambda: self.cont())
 
-    def move_left():
+    def move_left(self):
         pass
 
-    def move_right():
+    def move_right(self):
         pass
 
-    def move_up():
+    def move_up(self):
         pass
 
-    def move_down():
+    def move_down(self):
         pass
 
-    def scale_up():
+    def scale_up(self):
         pass
     
-    def scale_down():
+    def scale_down(self):
         pass
 
     def cont(self, event):
