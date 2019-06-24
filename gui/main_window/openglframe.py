@@ -26,7 +26,8 @@ class AppOgl(Opengl):
         glEnd()
 
     def init_cadaster(self):
-        cad = cadaster.Cadaster(util.getPathRelativeToRoot("/example_data/cadaster_examples/"))
+        cad = cadaster.Cadaster()
+        cad.get_buildings(util.getPathRelativeToRoot("/example_data/cadaster_examples/LoD1_468_5751_1_NW.gml"))
 
 
         self.cadlist = glGenLists(1)
@@ -40,7 +41,7 @@ class AppOgl(Opengl):
         for building in cad.buildings:
             glBegin(GL_POLYGON)
             for coord in building.coordinates:
-                x = self.parser.parse_coords(coord._x, coord._y, coord._z)
+                x = self.parser.parse_coords(coord.x, coord.y, coord.z)
                 glVertex3d(x[0], x[2], x[1])
                 vertices.append((x[0], x[2], x[1]))
             glEnd()
@@ -59,7 +60,7 @@ class AppOgl(Opengl):
         '''
 
         reader = pointcloud.PointCloudFileIO(
-            util.getPathRelativeToRoot("/example_data/pointcloud_examples/47094_575419_0011.laz"))
+            util.getPathRelativeToRoot("/example_data/pointcloud_examples/47078_575419_0011.laz"))
 
 
         self.cloudlist = glGenLists(1)

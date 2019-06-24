@@ -2,7 +2,7 @@
 from tkinter import filedialog
 import tkinter as Tk # python 3
 
-from side_panel import SidePanel
+from gui.output.side_panel import SidePanel
 
 
 class View:
@@ -21,8 +21,8 @@ class View:
         self.sidepanel.out_but.config(command=lambda: self.setOut())
         self.sidepanel.cont_but.config(command=lambda: self.cont)
 
-    def setOut(self, event):
+    def setOut(self):
         self.model.out_path.set(filedialog.askdirectory())
 
-    def cont(self, event):
+    def cont(self):
         pass

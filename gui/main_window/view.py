@@ -33,23 +33,53 @@ class View:
 
         self.sidepanel.cont_but.config(command=lambda: self.cont())
 
+    def getFloatFromEntry(self, entr):
+        try:
+            return float(entr.get())
+        except:
+            pass
+
     def move_left(self):
-        pass
+        try:
+            self.model.moveInXDirection(self.getFloatFromEntry(self.sidepanel.step_entry)*(-1.0))
+            print("X ",self.model.moveX)
+        except:
+            pass
 
     def move_right(self):
-        pass
+        try:
+            self.model.moveInXDirection(self.getFloatFromEntry(self.sidepanel.step_entry))
+            print("X ",self.model.moveX)
+        except:
+            pass
 
     def move_up(self):
-        pass
+        try:
+            self.model.moveInYDirection(self.getFloatFromEntry(self.sidepanel.step_entry)*(-1.0))
+            print("Y ", self.model.moveY)
+        except:
+            pass
 
     def move_down(self):
-        pass
+        try:
+            self.model.moveInYDirection(self.getFloatFromEntry(self.sidepanel.step_entry))
+            print("Y ", self.model.moveY)
+        except:
+            pass
 
     def scale_up(self):
-        pass
+        try:
+            self.model.scaleSize(self.getFloatFromEntry(self.sidepanel.entry))
+            print("Scale ",self.model.scaleFactor)
+        except:
+            pass
     
     def scale_down(self):
-        pass
+        try:
+            self.model.scaleSize(self.getFloatFromEntry(self.sidepanel.entry))
+            print("Scale ",self.model.scaleFactor)
+        except:
+            pass
 
-    def cont(self, event):
+    def cont(self):
         pass

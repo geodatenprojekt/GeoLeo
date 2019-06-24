@@ -1,5 +1,5 @@
 import tkinter as Tk # python 3
-from tkinter import 
+from tkinter import ttk
 
 class SidePanel():
     def __init__(self, root):

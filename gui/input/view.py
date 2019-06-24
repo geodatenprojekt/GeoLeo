@@ -1,7 +1,7 @@
 from tkinter import filedialog
 import tkinter as Tk # python 3
 
-from side_panel import SidePanel
+from gui.input.side_panel import SidePanel
 
 
 class View:
@@ -39,10 +39,10 @@ class View:
         return filedialog.askdirectory()
 
     def set_las(self):
-        self.model.las_path.set(self.choose_path())
+        self.model.lasPath.set(self.choose_path())
 
     def set_gml(self):
-        self.model.gml_path.set(self.choose_path())
+        self.model.gmlPath.set(self.choose_path())
 		
     def cont(self):
         pass

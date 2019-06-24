@@ -54,15 +54,9 @@ class Building:
     Attributes:
         coordinates: All Coordinate objects from the building
     """
-<<<<<<< HEAD
-
-    def __init__(self):
-        self.coordinates = list()
-=======
     coordinates = list()
     
     def __init__(self, coordinates=None):
         """Set coordinates"""
         if coordinates is not None:
           self.coordinates = coordinates
->>>>>>> origin/cadaster_reader
