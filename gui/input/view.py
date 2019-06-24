@@ -1,9 +1,5 @@
-
-try:
-    import Tkinter as Tk # python 2
-except ModuleNotFoundError:
-    from tkinter import filedialog
-    import tkinter as Tk # python 3
+from tkinter import filedialog
+import tkinter as Tk # python 3
 
 from side_panel import SidePanel
 
@@ -18,26 +14,35 @@ class View:
 
         self.model.gmlPath = Tk.StringVar()
         self.model.gmlPath.set("No Path")
+
         
-        self.lasLabel = Tk.Label(self.frame, textvariable=self.model.lasPath)
-        self.lasLabel.pack(side="top", fill=Tk.BOTH)
-        self.gmlLabel = Tk.Label(self.frame, textvariable=self.model.gmlPath)
-        self.gmlLabel.pack(side="top", fill=Tk.BOTH)
         self.frame.pack(side=Tk.LEFT, fill=Tk.BOTH, expand=1)
-        self.sidepanel = SidePanel(root)
+        
+        self.las_label = Tk.Label(self.frame, textvariable=self.model.lasPath)
+        self.las_label.grid(row=0, column=0)
+        self.las_but = Tk.Button(self.frame, text="Choose Las")
+        self.las_but.grid(row=0, column=1, sticky="ew")
 
-        self.sidepanel.lasBut.bind("<Button>", self.setLas)
-        self.sidepanel.gmlButton.bind("<Button>", self.setGml)
-        self.sidepanel.contBut.bind("<Button>", self.cont)
+        self.gml_label = Tk.Label(self.frame, textvariable=self.model.gmlPath)
+        self.gml_label.grid(row=1, column=0)
+        self.gml_but = Tk.Button(self.frame, text="Choose Gml")
+        self.gml_but.grid(row=1, column=1, sticky="ew")
 
-    def choosePath(self):
+        self.cont_but = Tk.Button(self.frame, text="Continue")
+        self.cont_but.grid(row=2, column=0, rowspan=2, columnspan=2, sticky="ew")
+
+        self.las_but.config(command=lambda: self.set_las()) 
+        self.gml_but.config(command=lambda: self.set_gml())
+        self.cont_but.config(command=lambda: self.cont())
+
+    def choose_path(self):
         return filedialog.askdirectory()
 
-    def setLas(self, event):
-        self.model.lasPath.set(self.choosePath())
+    def set_las(self):
+        self.model.las_path.set(self.choose_path())
 
-    def setGml(self, event):
-        self.model.gmlPath.set(self.choosePath())
+    def set_gml(self):
+        self.model.gml_path.set(self.choose_path())
 		
-    def cont(self, event):
+    def cont(self):
         pass

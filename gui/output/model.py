@@ -2,5 +2,5 @@
 class Model:
 
     def __init__(self):
-        self.outputPath = None
+        self.output_path = None
 

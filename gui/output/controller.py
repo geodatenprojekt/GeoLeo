@@ -1,7 +1,4 @@
-try:
-    import Tkinter as Tk # python 2
-except ModuleNotFoundError:
-    import tkinter as Tk # python 3
+import tkinter as Tk # python 3
 
 from model import Model
 from view import View
@@ -14,6 +11,6 @@ class Controller:
         self.view = View(self.root, self.model)
 
     def run(self):
-        self.root.title("Tkinter MVC example")
+        self.root.title("Output Selection")
         self.root.deiconify()
         self.root.mainloop()
