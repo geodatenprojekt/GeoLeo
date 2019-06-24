@@ -38,14 +38,29 @@ class Coordinate:
         self._y = y
         self._z = z
 
+    def __eq__(self, other):
+        return self.x == other.x and self.y == other.y and self.z == other.z
+
+    def __hash__(self):
+        return self.x.__hash__() + 7 * self.y.__hash__()
+
+    def __str__(self):
+        return "({:.3f}, {:.3f}, {:.3f})".format(self.x, self.y, self.z)
+
 class Building:
     """Building Class
 
     Attributes:
         coordinates: All Coordinate objects from the building
     """
+<<<<<<< HEAD
     coordinates = list()
 
     def __init__(self, coordinates):
         """Set coordinates"""
         self.coordinates = coordinates
+=======
+
+    def __init__(self):
+        self.coordinates = list()
+>>>>>>> origin/dev_algorithm

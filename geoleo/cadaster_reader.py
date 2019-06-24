@@ -1,4 +1,9 @@
+<<<<<<< HEAD
 """Functions for reading the CityGML files"""
+=======
+import xml.etree.ElementTree as ET
+from geoleo import cadaster
+>>>>>>> origin/dev_algorithm
 
 import xml.etree.ElementTree as ET
 from geoleo import cadaster
@@ -29,7 +34,12 @@ def get_coordinates(points):
     Returns:
         A Building object with all coordinates
     """
+<<<<<<< HEAD
     coordinates = list()
+=======
+    building = cadaster.Building()
+    building.coordinates = list()
+>>>>>>> origin/dev_algorithm
 
     #for counter in range(0, len(points)):
     for counter in enumerate(points):
@@ -42,8 +52,13 @@ def get_coordinates(points):
         elif coord == 0:
             _z = float(points[counter])
 
+<<<<<<< HEAD
             coord = cadaster.Coordinate(_x, _y, _z)
             coordinates.append(coord)
+=======
+            coord = cadaster.Coordinate(x, y, z)
+            building.coordinates.append(coord)
+>>>>>>> origin/dev_algorithm
 
     return coordinates
 
@@ -60,6 +75,7 @@ def get_buildings(directory):
 
     buildings = list()
 
+<<<<<<< HEAD
     for file_name in file_names:
         tree = ET.parse(file_name)
         root = tree.getroot()
@@ -74,6 +90,18 @@ def get_buildings(directory):
                 building = cadaster.Building(get_coordinates(points))
 
                 buildings.append(building)
+=======
+    for xml_member in root.iterfind( core_nameSpace + "cityObjectMember"):
+        elems = [ bldg_nameSpace + "Building",  bldg_nameSpace + "lod1Solid", gml_nameSpace + "Solid", gml_nameSpace + "exterior", gml_nameSpace + "CompositeSurface", gml_nameSpace + "surfaceMember", gml_nameSpace + 'Polygon', gml_nameSpace + 'exterior', gml_nameSpace + 'LinearRing', gml_nameSpace + 'posList' ]
+
+        building = cadaster.Building()
+        xml_elem = getXML_Element(elems, xml_member)
+        if xml_elem is not -1:
+            allPoints = xml_elem.text
+            points = allPoints.split()
+            building = getBuilding(points)
+            buildings.append(building)
+>>>>>>> origin/dev_algorithm
 
     return buildings
 
