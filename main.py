@@ -34,13 +34,21 @@ outputPath = cmd.getOutputPath()
 xOffset = cmd.getXOffset()
 yOffset = cmd.getYOffset()
 
+# xOffset = 2
+# yOffset = 2
+
 #for testing
 if cadPath is None:
     cadPath = "example_data/cadaster_examples"
+    logger.info("Using default path Cadasters: {}".format(cadPath))
 if pcPath is None:
     pcPath = "example_data/pointcloud_examples"
+    logger.info("Using default path for Pointclouds: {}".format(pcPath))
 if outputPath is None:
     outputPath = "output"
+    logger.info("Using default output path: {}".format(outputPath))
+
+# logger.debug("cadPath {}, pcPath {}, outputPath {}".format(cadPath, pcPath, outputPath))
 
 if(not os.path.isdir(outputPath)):
     os.makedirs(outputPath)
@@ -73,24 +81,21 @@ totalBuildings = 0
 for cad_file in cad_files:
     cad = cadaster.Cadaster()
     cad.get_buildings(cad_file)
+    if(xOffset != 0 or yOffset != 0):
+        logger.info("Shifting Cadaster coordinates by ({}, {})".format(xOffset, yOffset))
+        algorithms.shiftCadasterCoordinates(cad.buildings, (xOffset, yOffset))
     totalBuildings += len(cad.buildings)
     cads_list.append(cad)
-# cad.get_buildings(cad_files[0])
-#cad.get_buildings(cad_files[1])
-#cad.get_buildings(cad_files[2])
-#cad.get_buildings(cad_files[3])
-#cad.get_buildings(cad_files[4])
-#cad.get_buildings(cad_files[5])
 
 logger.debug("Found buildings: {}".format(totalBuildings))
 
 #========= PRE PROCESS ======================================
 logger.info("Pre processing LAS files..")
-preProcessed = algorithms.preProcessLasFiles(las_files, callback=logState)
+preProcessed = algorithms.preProcessLasFiles(las_files, callback=dontPrint)
 
 
 
-logger.info("Pre processing GML files..")
+# logger.info("Pre processing GML files..")
 max = len(cads_list)
 current = 0
 logger.info("Pre processing GML files.. {:.2f}%".format((current / max) * 100))
@@ -116,46 +121,22 @@ for cad in cads_list:
 logger.debug("Count after combine: {}".format(totalAfterCombine))
 
 #========= CUT OUT PROCESS ==================================
-logger.info("Getting LAS files for buildings..")
+# logger.info("Getting LAS files for buildings..")
 groupedByPointcloudsAll = []
-totalGroups = 0
+totalBuildingsToBeProcessed = 0
 current = 0
 logger.info("Getting LAS files for buildings.. {:.2f}%".format((current / max) * 100))
 for buildingsCombined in buildingsCombinedAll:
     ret = algorithms.getLasFilesForBuildings(buildingsCombined, las_files, preProcessed[4], maxBounds=(preProcessed[0], preProcessed[1], preProcessed[2], preProcessed[3]), callback=dontPrint)
     groupedByPointclouds = algorithms.groupBuildingsByPointclouds(ret)
     groupedByPointcloudsAll.append(groupedByPointclouds)
-    totalGroups += len(groupedByPointclouds)
+    for pointcloudPath, group in groupedByPointclouds.items():
+        totalBuildingsToBeProcessed += len(group)
+
+    # totalGroups += len(groupedByPointclouds)
     current += 1
     logger.info("Getting LAS files for buildings.. {:.2f}%".format((current / max) * 100))
-
-# logger.debug("==========CHECK LISTS===========")
-# if len(las_files) < 1:
-#     logger.debug("LAS_FILES EMPTY")
-# else:
-#     logger.debug("LAS_FILES[0]: {}".format(las_files[0]))
-# if len(cad_files) < 1:
-#     logger.debug("CAD_FILES EMPTY")
-# else:
-#     logger.debug("CAD_FILES[0]: {}".format(cad_files[0]))
-# if len(buildingsCombined) < 1:
-#     logger.debug("BUILDINGSCOMBINED EMPTY")
-# else:
-#     logger.debug("BUILDINGSCOMBINED[0].COORDINATES[0].X: {}".format(buildingsCombined[0].coordinates[0].x))
-# if len(preProcessed) < 1:
-#     logger.debug("PREPROCESSED EMPTY")
-# else:
-#     logger.debug("PREPROCESSED[0]: {}".format(preProcessed[0]))
-# if len(ret) < 1:
-#     logger.debug("RET EMPTY")
-# else:
-#     pass
-#     logger.debug("RET[0]: {}".format(ret[0])) # Auf Dictionaries kann man nicht mit Indizes zugreifen
-# if len(groupedByPointclouds) < 1:
-#     logger.debug("GROUPEDBYPOINTCLOUDS EMPTY")
-# else:
-#     pass
-#     logger.debug("GROUPEDBYPOINTCLOUDS[0]: {}".format(groupedByPointclouds[0])) # Auf Dictionaries kann man nicht mit Indizes zugreifen
+logger.debug("Count buildings to be processed: {}".format(totalBuildingsToBeProcessed))
 
 buildingCount = 0
 for groupedByPointclouds in groupedByPointcloudsAll:
@@ -182,4 +163,4 @@ for groupedByPointclouds in groupedByPointcloudsAll:
         for building in group:
             algorithms.cutBuildingFromPointcloud(pointsList, pointsWriteableList, boundsList, pcrs[0].file.header, building, outputPath)
             buildingCount += 1
-            logger.info("Building Cut Progress: {:.2f}%".format((buildingCount / totalAfterCombine) * 100))
+            logger.info("Building Cut Progress: {:.2f}%".format((buildingCount / totalBuildingsToBeProcessed) * 100))
