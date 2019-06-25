@@ -11,7 +11,7 @@ import logging
 import platform
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
@@ -34,8 +34,6 @@ outputPath = cmd.getOutputPath()
 xOffset = cmd.getXOffset()
 yOffset = cmd.getYOffset()
 
-# xOffset = 2
-# yOffset = 2
 
 #for testing
 if cadPath is None:
@@ -48,7 +46,6 @@ if outputPath is None:
     outputPath = "output"
     logger.info("Using default output path: {}".format(outputPath))
 
-# logger.debug("cadPath {}, pcPath {}, outputPath {}".format(cadPath, pcPath, outputPath))
 
 if(not os.path.isdir(outputPath)):
     os.makedirs(outputPath)
@@ -68,16 +65,19 @@ if len(las_files) < 1:
             util.unzipLAZFile(laz_file, "lib/laszip")
     las_files = file_helper.get_all_paths_from_dir(pcPath, ".las")
 
+if len(las_files) < 1:
+  logger.error("No LAS files found")
+  exit()
+
 #========= GET CADASTER ========================
 cads_list = []
-cad_files = file_helper.get_all_paths_from_dir(cadPath, ".gml")
 logger.info("Reading GML files..")
-#i = 0
-#for file_name in file_names:
-#    if i < 6:
-#        cad.get_buildings(file_name)
-#    i += 1
+cad_files = file_helper.get_all_paths_from_dir(cadPath, ".gml")
+if len(cad_files) < 1:
+  logger.error("No GML files found")
+  exit()
 totalBuildings = 0
+
 for cad_file in cad_files:
     cad = cadaster.Cadaster()
     cad.get_buildings(cad_file)
@@ -103,8 +103,6 @@ for cad in cads_list:
     algorithms.preProcessBuildingList(cad.buildings, pointLeeway=0.1, callback=dontPrint)
     current += 1
     logger.info("Pre processing GML files.. {:.2f}%".format((current / max) * 100))
-
-
 
 logger.info("Combining buildings parts to whole buildings..")
 buildingsCombinedAll = []
@@ -136,7 +134,10 @@ for buildingsCombined in buildingsCombinedAll:
     # totalGroups += len(groupedByPointclouds)
     current += 1
     logger.info("Getting LAS files for buildings.. {:.2f}%".format((current / max) * 100))
-logger.debug("Count buildings to be processed: {}".format(totalBuildingsToBeProcessed))
+
+if len(groupedByPointcloudsAll) < 1:
+  logger.error("No building found in pointclouds")
+  exit()
 
 buildingCount = 0
 for groupedByPointclouds in groupedByPointcloudsAll:
@@ -164,3 +165,5 @@ for groupedByPointclouds in groupedByPointcloudsAll:
             algorithms.cutBuildingFromPointcloud(pointsList, pointsWriteableList, boundsList, pcrs[0].file.header, building, outputPath)
             buildingCount += 1
             logger.info("Building Cut Progress: {:.2f}%".format((buildingCount / totalBuildingsToBeProcessed) * 100))
+
+logger.info("Cut Progress finished")

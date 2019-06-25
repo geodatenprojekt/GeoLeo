@@ -348,7 +348,7 @@ Cuts out a pointcloud fitting a given building, saves it to a certain file
 @param insetExclude  (optional) Excludes the inside of the building to speed up the algorithm
 @param pointsEnclosingDistance  (optional) The distance for the points around the edges to be included recursively in the algorithm, default as 1 meter distance
 """
-def cutBuildingFromPointcloud(pointsAbsList, writablePointsList, boundsList, lasFileHeader, building, saveFolder, callback=util.printProgressToConsole, extendInclude=1.01, insetExclude=0.90, pointsEnclosingDistance=1, maximumBoundsExtend=1.05):
+def cutBuildingFromPointcloud(pointsAbsList, writablePointsList, boundsList, lasFileHeader, building, saveFolder, callback=util.printProgressToConsole, extendInclude=1.08, insetExclude=0.90, pointsEnclosingDistance=1, maximumBoundsExtend=1.15):
     from laspy.file import File
 
     poly = Polygon([(point.x, point.y) for point in building.coordinates])
@@ -361,15 +361,9 @@ def cutBuildingFromPointcloud(pointsAbsList, writablePointsList, boundsList, las
     maxX = maxBounds[2]
     maxY = maxBounds[3]
 
-    # polyInset = affinity.scale(poly, insetExclude, insetExclude, insetExclude) #not needed currently
-
     anchor = poly.centroid
 
     filename = "{}_{}_{}.las".format(int(round(anchor.x, 0)), int(round(anchor.y, 0)), int(round(building.coordinates[0].z, 0)))
-    # print("Filename: {}".format(filename))
-    # print("Poly bounds normal:  {} | Area: {}".format(poly.bounds, poly.area))
-    # print("Poly bounds extend:  {}".format(polyExtend.bounds))
-    # print("Poly bounds maximum: {}".format(polyMaximum.bounds))
 
     cutPoints = []
     cutWritableList = []
