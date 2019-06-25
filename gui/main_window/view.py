@@ -10,18 +10,20 @@ from gui.main_window.pyopengltk import OpenGLFrame
 
 from gui.main_window.side_panel import SidePanel
 
-
 class View:
-    def __init__(self, root, model):
+    def __init__(self, root, model, contr):
         self.frame = Tk.Frame(root)
+        self.frame.grid(row=0, column=0, sticky='news')
         self.model = model
+        self.controller = contr
 
-        self.opengl = AppOgl(root, width=1024, height=720)
+        self.opengl = AppOgl(model, self.frame, width=1024, height=720)
+
         self.opengl.pack(side="left", fill=Tk.BOTH)
         
         self.opengl.animate=1
 
-        self.sidepanel = SidePanel(root);
+        self.sidepanel = SidePanel(self.frame);
 
         self.sidepanel.up_but.config(command=lambda: self.move_up())
         self.sidepanel.down_but.config(command=lambda: self.move_down())
@@ -82,4 +84,4 @@ class View:
             pass
 
     def cont(self):
-        pass
+        self.controller.raise_out()

@@ -10,6 +10,11 @@ from gui.main_window.absolute_parser import AbsParser
 class AppOgl(Opengl):
     initialised = 0
 
+    def __init__(self, model, *args, **kw):
+        self.lasPath = model.lasPath
+        self.gmlPath = model.gmlPath
+        super().__init__(*args, **kw)
+
     def draw_cordsystem(self):
         glBegin(GL_LINES)
         glColor3f(1, 0, 0)
@@ -26,6 +31,7 @@ class AppOgl(Opengl):
         glEnd()
 
     def init_cadaster(self):
+        print(self.lasPath)
         cad = cadaster.Cadaster()
         cad.get_buildings(util.getPathRelativeToRoot("/example_data/cadaster_examples/LoD1_468_5751_1_NW.gml"))
 

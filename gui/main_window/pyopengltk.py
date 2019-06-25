@@ -32,7 +32,6 @@ from OpenGL import GL, GLU
 
 if sys.version_info[0] < 3:
     import Tkinter as tk
-    import Dialog as dialog
 else:
     import tkinter as tk
     from tkinter import dialog as dialog

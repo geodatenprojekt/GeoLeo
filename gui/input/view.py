@@ -3,20 +3,19 @@ import tkinter as Tk # python 3
 
 from gui.input.side_panel import SidePanel
 
-
 class View:
-    def __init__(self, root, model):
+    def __init__(self, root, model, contr):
         self.frame = Tk.Frame(root)
+        self.frame.grid(row=0, column=0, sticky='news')
         self.model = model
+        self.root = root
+        self.controller = contr
 
         self.model.lasPath = Tk.StringVar()
         self.model.lasPath.set("No Path")
 
         self.model.gmlPath = Tk.StringVar()
         self.model.gmlPath.set("No Path")
-
-        
-        self.frame.pack(side=Tk.LEFT, fill=Tk.BOTH, expand=1)
         
         self.las_label = Tk.Label(self.frame, textvariable=self.model.lasPath)
         self.las_label.grid(row=0, column=0)
@@ -40,9 +39,11 @@ class View:
 
     def set_las(self):
         self.model.lasPath.set(self.choose_path())
+        print(self.model.lasPath)
 
     def set_gml(self):
         self.model.gmlPath.set(self.choose_path())
+        print(self.model.gmlPath)
 		
     def cont(self):
-        pass
+        self.controller.raise_main()
