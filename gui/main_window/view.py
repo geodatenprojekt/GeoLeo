@@ -12,7 +12,8 @@ from gui.main_window.side_panel import SidePanel
 
 class View:
     def __init__(self, root, model, contr):
-        self.frame = Tk.Frame(root)
+        self.top = Tk.Toplevel(root)
+        self.frame = Tk.Frame(self.top)
         self.frame.grid(row=0, column=0, sticky='news')
         self.model = model
         self.controller = contr
@@ -67,4 +68,5 @@ class View:
             pass
 
     def cont(self):
+        self.top.destroy()
         self.controller.raise_out()
