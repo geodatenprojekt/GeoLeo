@@ -5,7 +5,8 @@ from gui.input.side_panel import SidePanel
 
 class View:
     def __init__(self, root, model, contr):
-        self.frame = Tk.Frame(root)
+        self.top = Tk.Toplevel(root)
+        self.frame = Tk.Frame(self.top)
         self.frame.grid(row=0, column=0, sticky='news')
         self.model = model
         self.root = root
@@ -31,10 +32,11 @@ class View:
         self.cont_but.grid(row=2, column=0, rowspan=2, columnspan=2, sticky="ew")
 
     def set_las(self):
-        self.model.lasPath.set(filedialog.askdirectory(initialdir="/", title="Select Pointcloud Directory"))
+        self.model.lasPath.set(filedialog.askdirectory(title="Select Pointcloud Directory"))
 
     def set_gml(self):
-        self.model.gmlPath.set(filedialog.askdirectory(initialdir="/", title="Select Cadaster Directory"))
+        self.model.gmlPath.set(filedialog.askdirectory(title="Select Cadaster Directory"))
 		
     def cont(self):
+        self.top.destroy()
         self.controller.raise_main()

@@ -1,6 +1,6 @@
 import tkinter as Tk
 from OpenGL.GL import *
-from pyopengltk import Opengl
+from gui.main_window.pyopengltk import Opengl
 from geoleo import pointcloud
 from geoleo import util
 from geoleo import cadaster

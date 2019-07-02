@@ -8,7 +8,8 @@ from gui.output.side_panel import SidePanel
 
 class View:
     def __init__(self, root, model, contr):
-        self.frame = Tk.Frame(root)
+        self.top = Tk.Toplevel(root)
+        self.frame = Tk.Frame(self.top)
         self.frame.grid(row=0, column=0, sticky='news')
         self.model = model
         self.controller = contr
@@ -27,5 +28,5 @@ class View:
         self.model.outPath.set(filedialog.askdirectory())
 
     def cont(self):
-        print("press")
+        self.top.destroy()
         self.model.cutPC()

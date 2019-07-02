@@ -18,6 +18,7 @@ class Controller:
         self.root.resizable(True, True) 
         self.root.deiconify()
         self.raise_in()
+        self.root.withdraw()
         self.root.mainloop()
 
     def raise_in(self):
