@@ -126,7 +126,6 @@ class AppOgl(Opengl):
         glEndList()
 
     def draw_cadaster(self):
-        print("MOVE: ", self.model.moveX,  self.model.moveY)
         glColor3d(1, 0, 0)
         vertices = []
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
@@ -168,7 +167,5 @@ class AppOgl(Opengl):
 
             self.draw_pointcloud()
             self.draw_cadaster()
-
-            #print(self.xcenter, self.ycenter, self.zcenter, self.distance)
 
             glFlush()
