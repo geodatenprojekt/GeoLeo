@@ -24,8 +24,6 @@ class AbsParser:
         y = int(y * 1000)
         z = int(z * 1000)
 
-        #z = 0
-
         list.append(x)
         list.append(y)
         list.append(z)
@@ -34,11 +32,6 @@ class AbsParser:
 
 
     def parse_list(self, list):
-        '''
-        x -= self.min[index]
-                    x -= mid
-                    x = int(x * 1000)
-        '''
         parsed = []
         try:
             for x in range(0, list.__len__()):
@@ -55,7 +48,6 @@ class AbsParser:
                         curr = int(curr)
                         inner.append(curr)
                 if inner:
-                    #print(inner)
                     parsed.append(inner)
         except TypeError:
             print("list is not iterable")

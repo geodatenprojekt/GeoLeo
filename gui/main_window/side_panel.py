@@ -8,7 +8,7 @@ class SidePanel():
         
         self.sbt = Tk.Frame(self.sb)
         self.sbt.pack(side="top", fill=Tk.BOTH, expand=Tk.NO, pady = 2)
-        self.scal_label = Tk.Label(self.sbt, text="Step Length:")
+        self.scal_label = Tk.Label(self.sbt, text="Step Length(mm): ")
         self.scal_label.pack(side="top", fill=Tk.BOTH)
         self.step_entry = Tk.Entry(self.sbt)
         self.step_entry.delete(0, Tk.END)

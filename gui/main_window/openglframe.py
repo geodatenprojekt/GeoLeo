@@ -125,24 +125,6 @@ class AppOgl(Opengl):
         glEnd()
         glEndList()
 
-    def reszie(self):
-        self.cadlist = glGenLists(1)
-        glNewList(self.cadlist, GL_COMPILE)
-
-        glColor3d(1, 0, 0)
-
-        vertices = []
-
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-        for building in self.buildings:
-            glBegin(GL_POLYGON)
-            for coord in building.coordinates:
-                x = self.parser.parse_coords(coord.x, coord.y, coord.z)
-                glVertex3d(x[0] + self.model.moveX, x[2], x[1] + self.model.moveY)
-                vertices.append((x[0] + self.model.moveX, x[2], x[1] + self.model.moveY))
-            glEnd()
-        glEndList()
-
     def draw_cadaster(self):
         print("MOVE: ", self.model.moveX,  self.model.moveY)
         glColor3d(1, 0, 0)
