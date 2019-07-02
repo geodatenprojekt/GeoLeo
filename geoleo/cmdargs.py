@@ -27,9 +27,9 @@ class Parameters:
 
         parser.add_argument("-x", "--xoffset", type=float, default=0, help="float expected, offset in direction x")
         parser.add_argument("-y", "--yoffset", type=float, default=0, help="flaot expected, offset in direction y")
-        parser.add_argument("-v", '--version', action='version', version='%(prog)s 0.1')
+        parser.add_argument("-v", '--version', action='version', version='%(prog)s 1.0')
         return parser.parse_args()
-        
+
 
     def writeArgs(self):
         """Checks if certain arguments are given writes them to class variables then"""
@@ -55,10 +55,10 @@ class Parameters:
             return path
         else:
             raise argparse.ArgumentTypeError(f"given directory {path} is not a valid path")
-    
+
     def writeable_dir(self, path):
         """Checks if the given output path is also writeable"""
-        
+
         if os.path.isdir(path):
             if os.access(path, os.W_OK):
                 return path
@@ -68,10 +68,10 @@ class Parameters:
 
 
     def getCadasterPath(self):
-        """Returns path to cadaster files if specified. 
-        Otherwise returns None"""  
+        """Returns path to cadaster files if specified.
+        Otherwise returns None"""
         return self.cadasterPath
-    
+
     def getPointCloudPath(self):
         """Returns path to point cloud files if specified.
         Otherwise returns None"""
@@ -91,4 +91,3 @@ class Parameters:
         """Returns y-offset if given.
         Otherwise returns default (0.0)"""
         return self.yoffset
-
