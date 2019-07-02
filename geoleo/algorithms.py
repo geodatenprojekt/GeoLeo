@@ -193,8 +193,8 @@ def combineBuildingsToGroups(buildings):
         if(not hadMatchingPoint):
             buildingGroups[i] = {building}
         i += 1
-    print("Found common points: {}".format(foundCommonPoints))
-    print("Found building groups: {}".format(len(buildingGroups)))
+    # print("Found common points: {}".format(foundCommonPoints))
+    # print("Found building groups: {}".format(len(buildingGroups)))
 
     countGroups = 0
     combinedBuildings = []
@@ -231,9 +231,14 @@ Groups buildings that use the same pointcloud files
 """
 def groupBuildingsByPointclouds(lasFilesByBuilding):
     groups = {}
+    maxPoints = 0
+    maxPointsActual = 0
     for building, buildingInfo in lasFilesByBuilding.items():
+        maxPoints = max(maxPoints, len(buildingInfo[0]))
+        maxPointsActual = max(maxPointsActual, len(building.coordinates))
         if(False in buildingInfo[0]):
             continue
+        # print("Found building that is completely inside our region!")
         concattedPaths = util.concatPointcloudPaths(buildingInfo[1])
         if(concattedPaths in groups):
             groups[concattedPaths].append(building)
@@ -287,7 +292,7 @@ def preProcessBuildingList(buildingList, pointLeeway=0.001, callback=util.printP
         i += 1
         callback(i, max)
 
-    print("Replaced a total of ({})/({}) points.".format(replacedPoints, notReplaced+replacedPoints))
+    # print("Replaced a total of ({})/({}) points.".format(replacedPoints, notReplaced+replacedPoints))
 
 
 buildingGroupCount = 0
@@ -315,7 +320,7 @@ def combineBuildingGroup(buildingGroup, pointLeeway=0.001):
     union = cascaded_union(polygons)
     building = cadaster.Building()
     if(union.boundary.is_closed == False):
-        print("Failed boundary!")
+        # print("Failed boundary!")
         buildings = []
         for boundary in union.boundary:
             building = cadaster.Building()
@@ -333,6 +338,7 @@ def combineBuildingGroup(buildingGroup, pointLeeway=0.001):
     buildingGroupCount += 1
     return building
 
+
 """
 Cuts out a pointcloud fitting a given building, saves it to a certain file
 @param pointcloudReader  The pointcloud containing the building
@@ -342,10 +348,8 @@ Cuts out a pointcloud fitting a given building, saves it to a certain file
 @param insetExclude  (optional) Excludes the inside of the building to speed up the algorithm
 @param pointsEnclosingDistance  (optional) The distance for the points around the edges to be included recursively in the algorithm, default as 1 meter distance
 """
-def cutBuildingFromPointcloud(pointCloudReader, building, saveFolder, callback=util.printProgressToConsole, extendInclude=1.01, insetExclude=0.90, pointsEnclosingDistance=1, maximumBoundsExtend=1.05):
-    # lowBounds = pointCloudReader.getLowestCoords()
-    points = pointCloudReader.getPoints()
-    writablePoints = pointCloudReader.file.points
+def cutBuildingFromPointcloud(pointsAbsList, writablePointsList, boundsList, lasFileHeader, building, saveFolder, callback=util.printProgressToConsole, extendInclude=1.08, insetExclude=0.90, pointsEnclosingDistance=1, maximumBoundsExtend=1.15):
+    from laspy.file import File
 
     poly = Polygon([(point.x, point.y) for point in building.coordinates])
 
@@ -357,44 +361,52 @@ def cutBuildingFromPointcloud(pointCloudReader, building, saveFolder, callback=u
     maxX = maxBounds[2]
     maxY = maxBounds[3]
 
-    # polyInset = affinity.scale(poly, insetExclude, insetExclude, insetExclude) #not needed currently
-
     anchor = poly.centroid
 
     filename = "{}_{}_{}.las".format(int(round(anchor.x, 0)), int(round(anchor.y, 0)), int(round(building.coordinates[0].z, 0)))
-    print("Filename: {}".format(filename))
-    print("Poly bounds normal:  {} | Area: {}".format(poly.bounds, poly.area))
-    print("Poly bounds extend:  {}".format(polyExtend.bounds))
-    print("Poly bounds maximum: {}".format(polyMaximum.bounds))
-    # print("Poly bounds inset:   {}".format(polyInset.bounds))
 
-    print("Points count regular:  {}".format(len(writablePoints)))
+    cutPoints = []
+    cutWritableList = []
 
-    # filteredWritablePoints = writablePoints[(points[:, 0] > maxBounds[0]) & (points[:, 1] > maxBounds[1]) & (points[:, 0] < maxBounds[2]) & (points[:, 1] < maxBounds[3])]
-    selection = (points[:, 0] > minX) & (points[:, 1] > minY) & (points[:, 0] < maxX) & (points[:, 1] < maxY)
-    writablePoints = writablePoints[selection]
-    points = points[selection]
+    for i in range(len(pointsAbsList)):
+        pointsAbs = pointsAbsList[i]
+        writablePoints = writablePointsList[i]
+        bounds = boundsList[i]
+        pcMinX = bounds[0][0]
+        pcMinY = bounds[0][1]
+        pcMaxX = bounds[1][0]
+        pcMaxY = bounds[1][1]
 
-    selection = []
+        polyBounds = Polygon([(pcMinX, pcMinY), (pcMaxX, pcMinY), (pcMaxX, pcMaxY), (pcMinX, pcMaxY)])
+        pipPolygon = polyBounds.intersection(polyExtend)
 
-    for point in points:
-        shapelyPoint = Point(point[0], point[1])
-        if(polyExtend.contains(shapelyPoint)):
-            selection.append(True)
-        else:
-            selection.append(False)
+        selection = (pointsAbs[:, 0] > minX) & (pointsAbs[:, 1] > minY) & (pointsAbs[:, 0] < maxX) & (pointsAbs[:, 1] < maxY)
 
-    writablePoints = writablePoints[selection]
-    points = points[selection]
+        pointsAbs = pointsAbs[selection]
+        writablePoints = writablePoints[selection]
 
-    countFiltered = len(writablePoints)
-    print("Points count filtered: {}".format(countFiltered))
+        selection = []
+        for point in pointsAbs:
+            shapelyPoint = Point(point[0], point[1])
+            if(pipPolygon.contains(shapelyPoint)):
+                selection.append(True)
+            else:
+                selection.append(False)
 
-    if(countFiltered == 0):
-        print("Found empty selection of points...")
+        cutPoints.append(pointsAbs[selection])
+        cutWritableList.append(writablePoints[selection])
+
+    combinedPoints = np.concatenate(cutPoints)
+    combinedPointsWritable = np.concatenate(cutWritableList)
+
+    if(len(combinedPoints) == 0):
+        # print("Found empty selection of points, skipping building...")
         return
 
-    if(countFiltered == 62343):
-        print("====== Found duplicate building!")
 
-    pointCloudReader.writeFileToPath("{}/{}".format(saveFolder, filename), points=writablePoints)
+    outFile = File("{}/{}".format(saveFolder, filename), mode='w', header=lasFileHeader)
+    outFile.points = combinedPointsWritable
+    outFile.set_x_scaled(combinedPoints[:, 0])
+    outFile.set_y_scaled(combinedPoints[:, 1])
+    outFile.set_z_scaled(combinedPoints[:, 2])
+    outFile.close()

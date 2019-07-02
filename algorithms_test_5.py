@@ -5,6 +5,9 @@ import geoleo.cadaster_reader as CadReader
 import geoleo.util as util
 import os, sys
 
+print("OUTDATED, schau ein paar commits zurück um die vorherige cutBuildingFromPointcloud funktion zu sehen")
+exit()
+
 # print("Modules:\n{}".format("\n".join(sys.modules)))
 
 #==========GET LAS FILES & PRE PROCESS=====================
@@ -65,9 +68,6 @@ for cadasterPath in cadasterPaths:
             print("Pointcloud files where too small, building ignored...")
             continue
         pcr = util.getMergedPointcloudForPaths(paths)
-        # print("Pointcloud path used: {}".format(pcr.path))
-        # print("Paths:\n{}".format("\n\t".join(util.getPointcloudsFromConcated(concattedPath))))
-        # print("Buildings count: {}".format(len(group)))
         for building in group:
             algorithms.cutBuildingFromPointcloud(pcr, building, "cut_with")
             buildingCount += 1
