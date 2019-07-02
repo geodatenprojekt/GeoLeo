@@ -31,19 +31,9 @@ class SidePanel():
         self.sep = ttk.Separator(self.sepf, orient=Tk.HORIZONTAL)
         self.sep.pack(side="bottom", fill=Tk.BOTH)
 
-        """Scale Frame"""
+        """Cut Frame"""
         self.sbf = Tk.Frame(self.sb)
         self.sbf.pack(side="top", fill=Tk.BOTH, expand=Tk.YES)
-        self.scalLabel = Tk.Label(self.sbf, text="Scale Factor:")
-        self.scalLabel.pack(side="top", fill=Tk.BOTH)
-        self.entry = Tk.Entry(self.sbf)
-        self.entry.insert(Tk.END, "1")
-        self.entry.pack(side="top", fill=Tk.BOTH, expand=Tk.NO)
-        self.sup_but = Tk.Button(self.sbf, text="Scale Up")
-        self.sup_but.pack(side="top", fill=Tk.BOTH)
-        
-        self.sdown_but = Tk.Button(self.sbf, text="Scale Down")
-        self.sdown_but.pack(side="top", fill=Tk.BOTH)
 
         self.cont_but = Tk.Button(self.sbf, text="Cut Pointcloud")
         self.cont_but.pack(side="bottom", fill=Tk.BOTH)

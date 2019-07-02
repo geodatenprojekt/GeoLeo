@@ -46,7 +46,7 @@ class Model:
             os.makedirs(outputPath)
             logger.info("Created output directory")
 
-        #========= GET LAS FILES ==========
+        # ========= GET LAS FILES ==========
         las_files = list()
         logger.info("Reading LAS files..")
         las_files = file_helper.get_all_paths_from_dir(pcPath, ".las")
@@ -64,7 +64,7 @@ class Model:
             logger.error("No LAS files found")
             exit()
 
-        #========= GET CADASTER ========================
+        # ========= GET CADASTER ========================
         cads_list = []
         logger.info("Reading GML files..")
         cad_files = file_helper.get_all_paths_from_dir(cadPath, ".gml")
@@ -76,16 +76,19 @@ class Model:
         for cad_file in cad_files:
             cad = cadaster.Cadaster()
             cad.get_buildings(cad_file)
+            if (xOffset != 0 or yOffset != 0):
+                logger.info("Shifting Cadaster coordinates by ({}, {})".format(xOffset, yOffset))
+                algorithms.shiftCadasterCoordinates(cad.buildings, (xOffset, yOffset))
             totalBuildings += len(cad.buildings)
             cads_list.append(cad)
 
         logger.debug("Found buildings: {}".format(totalBuildings))
 
-        #========= PRE PROCESS ======================================
+        # ========= PRE PROCESS ======================================
         logger.info("Pre processing LAS files..")
-        preProcessed = algorithms.preProcessLasFiles(las_files, callback=logState)
+        preProcessed = algorithms.preProcessLasFiles(las_files, callback=dontPrint)
 
-        logger.info("Pre processing GML files..")
+        # logger.info("Pre processing GML files..")
         max = len(cads_list)
         current = 0
         logger.info("Pre processing GML files.. {:.2f}%".format((current / max) * 100))
@@ -108,17 +111,21 @@ class Model:
 
         logger.debug("Count after combine: {}".format(totalAfterCombine))
 
-        #========= CUT OUT PROCESS ==================================
-        logger.info("Getting LAS files for buildings..")
+        # ========= CUT OUT PROCESS ==================================
+        # logger.info("Getting LAS files for buildings..")
         groupedByPointcloudsAll = []
-        totalGroups = 0
+        totalBuildingsToBeProcessed = 0
         current = 0
         logger.info("Getting LAS files for buildings.. {:.2f}%".format((current / max) * 100))
         for buildingsCombined in buildingsCombinedAll:
-            ret = algorithms.getLasFilesForBuildings(buildingsCombined, las_files, preProcessed[4], maxBounds=(preProcessed[0], preProcessed[1], preProcessed[2], preProcessed[3]), callback=dontPrint)
+            ret = algorithms.getLasFilesForBuildings(buildingsCombined, las_files, preProcessed[4], maxBounds=(
+            preProcessed[0], preProcessed[1], preProcessed[2], preProcessed[3]), callback=dontPrint)
             groupedByPointclouds = algorithms.groupBuildingsByPointclouds(ret)
             groupedByPointcloudsAll.append(groupedByPointclouds)
-            totalGroups += len(groupedByPointclouds)
+            for pointcloudPath, group in groupedByPointclouds.items():
+                totalBuildingsToBeProcessed += len(group)
+
+            # totalGroups += len(groupedByPointclouds)
             current += 1
             logger.info("Getting LAS files for buildings.. {:.2f}%".format((current / max) * 100))
 
@@ -149,8 +156,10 @@ class Model:
                     boundsList.append(bounds)
 
                 for building in group:
-                    algorithms.cutBuildingFromPointcloud(pointsList, pointsWriteableList, boundsList, pcrs[0].file.header, building, outputPath)
+                    algorithms.cutBuildingFromPointcloud(pointsList, pointsWriteableList, boundsList,
+                                                         pcrs[0].file.header, building, outputPath)
                     buildingCount += 1
-                    logger.info("Building Cut Progress: {:.2f}%".format((buildingCount / totalAfterCombine) * 100))
+                    logger.info(
+                        "Building Cut Progress: {:.2f}%".format((buildingCount / totalBuildingsToBeProcessed) * 100))
 
         logger.info("Cut Progress finished")

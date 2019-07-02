@@ -19,7 +19,6 @@ class Controller:
         self.root.deiconify()
         self.raise_in()
         self.root.mainloop()
-        self.raise_in()
 
     def raise_in(self):
         self.iview.frame.tkraise()
